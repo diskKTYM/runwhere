@@ -1,0 +1,2551 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>どこ走る？ RunWhere</title>
+
+<!-- ── PWA Manifest ─────────────────────────────────── -->
+<link rel="manifest" href="manifest.json">
+
+<!-- ── PWA Meta Tags ────────────────────────────────── -->
+<meta name="theme-color" content="#6366f1">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="RunWhere">
+<meta name="application-name" content="RunWhere">
+<meta name="msapplication-TileColor" content="#6366f1">
+<meta name="msapplication-TileImage" content="icons/icon-144.png">
+<meta name="description" content="AIがあなたのランニング・サイクリングルートを自動生成するアプリ">
+
+<!-- ── Apple Touch Icons ─────────────────────────────── -->
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png">
+<link rel="apple-touch-icon" sizes="144x144" href="icons/icon-144.png">
+<link rel="apple-touch-icon" sizes="128x128" href="icons/icon-128.png">
+
+<!-- ── Favicon ──────────────────────────────────────── -->
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="96x96" href="icons/icon-96.png">
+<link rel="shortcut icon" href="icons/icon-96.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCQWa8KLzLVpzqFoKp5g52DtMf5cVMg7Nc&libraries=places,geometry&callback=initMap" async defer></script>
+<style>
+/* ── TOKENS ─────────────────────────────────────────── */
+:root {
+  --bg:        #f5f6fa;
+  --surface:   #ffffff;
+  --surface2:  #f8f9fc;
+  --border:    rgba(0,0,0,.07);
+  --border2:   rgba(0,0,0,.12);
+  --text:      #111827;
+  --text2:     #6b7280;
+  --text3:     #9ca3af;
+  --danger:    #ef4444;
+
+  /* グラデーション */
+  --grad-a:    #a78bfa;   /* パープル */
+  --grad-b:    #60a5fa;   /* ブルー */
+  --grad-c:    #34d399;   /* グリーン */
+  --grad-run:  linear-gradient(135deg,#a78bfa,#60a5fa);
+  --grad-bike: linear-gradient(135deg,#f472b6,#fb923c);
+  --grad-card: linear-gradient(135deg,#e0e7ff 0%,#f0fdf4 100%);
+  --grad-btn:  linear-gradient(135deg,#6366f1,#8b5cf6);
+  --grad-btn-h:linear-gradient(135deg,#4f46e5,#7c3aed);
+
+  --sidebar-w: 64px;
+  --panel-w:   320px;
+  --radius:    16px;
+  --shadow:    0 1px 3px rgba(0,0,0,.08), 0 8px 24px rgba(0,0,0,.06);
+  --shadow-lg: 0 4px 6px rgba(0,0,0,.05), 0 16px 48px rgba(0,0,0,.1);
+}
+
+/* ── RESET ───────────────────────────────────────────── */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', 'Noto Sans JP', sans-serif;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+}
+
+/* ── SIDEBAR ─────────────────────────────────────────── */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--text);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 0 20px;
+  z-index: 200;
+  gap: 0;
+}
+
+.sidebar-logo {
+  width: 44px; height: 44px;
+  background: linear-gradient(135deg,#6366f1,#8b5cf6,#a78bfa);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 16px rgba(99,102,241,.55);
+  flex-shrink: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
+.sidebar-logo img { width:44px; height:44px; object-fit:cover; border-radius:12px; display:block; mix-blend-mode: screen; }
+
+.sidebar-nav { display:flex; flex-direction:column; gap:6px; width:100%; padding:0 10px; align-items:center; }
+
+/* サイドバー メニュー群（ロゴ直下） */
+.sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 0 10px;
+}
+
+/* マップピンアイコン */
+.nav-icon {
+  width: 44px; height: 44px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  color: rgba(255,255,255,.5);
+}
+
+.nav-icon svg { width:22px; height:22px; }
+
+/* 言語プルダウン */
+.lang-select-wrap { position: relative; width: 44px; }
+
+.lang-select {
+  width: 44px; height: 36px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.15);
+  border-radius: 9px;
+  color: rgba(255,255,255,.8);
+  font-family: 'Inter', sans-serif;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: .5px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  text-align: center;
+  padding: 0 4px;
+  outline: none;
+  transition: all .18s;
+}
+
+.lang-select:hover { background: rgba(255,255,255,.14); }
+.lang-select:focus { background: linear-gradient(135deg,#6366f1,#a78bfa); border-color: transparent; box-shadow: 0 2px 8px rgba(99,102,241,.4); }
+
+.lang-select option { background: #1f2937; color: white; }
+
+/* 履歴ボタン（サイドバーメニュー内） */
+.hist-nav-btn {
+  width: 44px; height: 44px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all .2s;
+  color: rgba(255,255,255,.4); background: transparent; border: none;
+  position: relative;
+}
+
+.hist-nav-btn:hover { background: rgba(255,255,255,.08); color: rgba(255,255,255,.75); }
+.hist-nav-btn svg { width:20px; height:20px; stroke:currentColor; fill:none; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+
+.hist-count-badge {
+  position: absolute; top: 5px; right: 5px;
+  min-width: 16px; height: 16px;
+  background: linear-gradient(135deg,#6366f1,#a78bfa);
+  color: white; border-radius: 8px; padding: 0 4px;
+  font-size: 9px; font-weight: 700;
+  display: none; align-items: center; justify-content: center;
+}
+
+.hist-count-badge.show { display: flex; }
+
+/* ── MAIN LAYOUT ─────────────────────────────────────── */
+.app-body {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.top-bar {
+  height: 60px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 12px;
+  flex-shrink: 0;
+  z-index: 100;
+}
+
+.app-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -.3px;
+  display: flex; align-items: center; gap: 6px;
+}
+
+.app-title-sub {
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text3);
+  letter-spacing: .2px;
+}
+
+.top-bar-spacer { flex:1; }
+
+.mode-toggle {
+  display: flex;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.mode-btn {
+  padding: 6px 14px;
+  font-size: 12px; font-weight: 600;
+  cursor: pointer; border: none;
+  background: transparent; color: var(--text2);
+  border-radius: 8px;
+  transition: all .18s;
+  display: flex; align-items: center; gap: 5px;
+}
+
+.mode-btn svg { width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
+.mode-btn.active-run  { background:var(--grad-run); color:white; box-shadow:0 2px 8px rgba(99,102,241,.35); }
+.mode-btn.active-bike { background:var(--grad-bike); color:white; box-shadow:0 2px 8px rgba(244,114,182,.35); }
+
+/* ── CONTENT AREA ────────────────────────────────────── */
+.content {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ── PANEL ───────────────────────────────────────────── */
+.panel {
+  width: var(--panel-w);
+  flex-shrink: 0;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px 14px;
+  gap: 10px;
+}
+
+.panel::-webkit-scrollbar { width:4px; }
+.panel::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+
+/* ── CARD ────────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+
+.card-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  color: var(--text3);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+/* ── SEARCH CARD ─────────────────────────────────────── */
+.search-card { background: var(--grad-card); }
+
+.search-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  padding: 0 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  transition: box-shadow .2s, border-color .2s;
+}
+
+.search-input-wrap:focus-within { border-color: #a78bfa; box-shadow: 0 0 0 3px rgba(167,139,250,.15); }
+.search-input-wrap svg { width:15px; height:15px; stroke:var(--text3); fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
+
+.search-input {
+  flex:1; border:none; outline:none; background:transparent;
+  font-size: 13px; font-family: inherit; color:var(--text);
+  padding: 10px 0;
+}
+
+.search-input::placeholder { color:var(--text3); }
+
+.gps-btn {
+  width: 100%; margin-top: 8px; padding: 8px;
+  background: rgba(255,255,255,.7); border: 1px dashed rgba(99,102,241,.3);
+  border-radius: 8px; cursor: pointer;
+  font-family: inherit; font-size: 12px; font-weight: 500;
+  color: #6366f1; transition: all .18s;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+
+.gps-btn svg { width:13px; height:13px; stroke:currentColor; fill:none; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+.gps-btn:hover { background:rgba(99,102,241,.08); border-color:rgba(99,102,241,.5); }
+
+.start-badge {
+  margin-top: 8px; padding: 8px 12px;
+  background: white; border: 1px solid rgba(99,102,241,.2);
+  border-radius: 8px; font-size: 11px; font-weight: 500;
+  color: #6366f1; display: none; align-items: center; gap: 6px;
+  box-shadow: 0 1px 4px rgba(99,102,241,.1);
+}
+
+.start-badge.show { display:flex; }
+.start-badge-text { flex:1; line-height:1.4; }
+.start-badge-clear { cursor:pointer; color:var(--text3); font-size:14px; transition:color .15s; line-height:1; }
+.start-badge-clear:hover { color:var(--danger); }
+
+/* ── DISTANCE CARD ───────────────────────────────────── */
+.dist-card { overflow:visible; }
+
+.dist-display {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.dist-num-wrap { position:relative; flex:1; }
+
+.dist-input {
+  width: 100%;
+  background: linear-gradient(135deg,#6366f1,#8b5cf6);
+  border: none; border-radius: 12px;
+  padding: 14px 56px 14px 20px;
+  font-size: 40px; font-weight: 700; font-family: inherit;
+  color: white; outline: none;
+  letter-spacing: -1px;
+  box-shadow: 0 4px 16px rgba(99,102,241,.3);
+}
+
+.dist-unit {
+  position:absolute; right:18px; top:50%; transform:translateY(-50%);
+  font-size:13px; font-weight:600; color:rgba(255,255,255,.6);
+  pointer-events:none; letter-spacing:.5px;
+}
+
+.presets { display:flex; gap:5px; }
+
+.preset {
+  flex:1; padding:7px 0;
+  background:var(--surface2); border:1px solid var(--border2);
+  border-radius:8px; font-size:11px; font-weight:600;
+  color:var(--text2); cursor:pointer; text-align:center;
+  transition:all .15s;
+}
+
+.preset:hover { border-color:#a78bfa; color:#6366f1; background:rgba(99,102,241,.05); }
+
+/* ── OPTIONS CARD ────────────────────────────────────── */
+.options-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+
+.opt-card {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px; cursor: pointer;
+  transition: all .18s; position:relative; overflow:hidden;
+}
+
+.opt-card:hover { border-color:rgba(99,102,241,.3); background:rgba(99,102,241,.03); }
+
+.opt-card.sel {
+  background: linear-gradient(135deg,rgba(99,102,241,.08),rgba(139,92,246,.08));
+  border-color: rgba(99,102,241,.35);
+  box-shadow: 0 2px 8px rgba(99,102,241,.1);
+}
+
+.opt-icon { font-size:16px; margin-bottom:4px; filter:grayscale(1); transition:filter .2s; }
+.opt-card.sel .opt-icon { filter:none; }
+.opt-card.sel .opt-icon-svg { color:#6366f1; }
+.opt-title { font-size:11px; font-weight:600; color:var(--text); line-height:1.3; }
+.opt-desc  { font-size:10px; color:var(--text3); margin-top:1px; line-height:1.3; }
+
+/* ── TURNS ───────────────────────────────────────────── */
+.opt-card-wide {
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:10px; padding:10px; cursor:pointer;
+  transition:all .18s; grid-column:1/-1; position:relative; overflow:hidden;
+}
+
+.opt-card-wide:hover { border-color:rgba(99,102,241,.3); }
+.opt-card-wide.sel { background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(139,92,246,.08)); border-color:rgba(99,102,241,.35); }
+.turns-header { display:flex; align-items:center; gap:8px; }
+.turns-header .opt-icon { margin-bottom:0; font-size:15px; }
+.turns-header-text { flex:1; }
+.turns-header-title { font-size:11px; font-weight:600; color:var(--text); }
+.turns-header-desc  { font-size:10px; color:var(--text3); margin-top:1px; }
+
+.turns-stepper {
+  display:flex; align-items:center;
+  background:var(--text); border-radius:8px; overflow:hidden; flex-shrink:0;
+}
+
+.turns-step-btn {
+  width:28px; height:28px; background:transparent; border:none;
+  color:rgba(255,255,255,.5); font-size:16px; font-weight:700;
+  cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s;
+}
+
+.turns-step-btn:hover { background:rgba(167,139,250,.3); color:white; }
+
+.turns-val {
+  min-width:28px; text-align:center;
+  font-size:16px; font-weight:700;
+  color:white;
+  border-left:1px solid rgba(255,255,255,.1); border-right:1px solid rgba(255,255,255,.1);
+  padding:0 4px; line-height:28px;
+}
+
+.turns-presets { display:none; gap:4px; margin-top:8px; }
+.turns-presets.show { display:flex; }
+
+.turns-preset {
+  flex:1; padding:4px 0; text-align:center;
+  background:white; border:1px solid var(--border2);
+  border-radius:6px; font-size:11px; font-weight:600;
+  color:var(--text2); cursor:pointer; transition:all .15s;
+}
+
+.turns-preset:hover { border-color:#a78bfa; color:#6366f1; }
+.turns-preset.active { background:var(--text); color:white; border-color:var(--text); }
+
+/* ── PACE CARD ───────────────────────────────────────── */
+.pace-row { display:flex; align-items:center; gap:8px; }
+
+.pace-input {
+  width:50px; background:var(--surface2); border:1px solid var(--border2);
+  border-radius:8px; padding:8px 6px;
+  font-size:18px; font-weight:700; font-family:inherit;
+  color:var(--text); outline:none; text-align:center; transition:all .2s;
+}
+
+.pace-input:focus { border-color:#a78bfa; box-shadow:0 0 0 3px rgba(167,139,250,.15); }
+.pace-sep { font-size:20px; font-weight:300; color:var(--text3); }
+.pace-unit { font-size:11px; font-weight:500; color:var(--text3); }
+
+.pace-result {
+  margin-top:10px; padding:10px 14px;
+  background:linear-gradient(135deg,rgba(99,102,241,.07),rgba(139,92,246,.07));
+  border:1px solid rgba(99,102,241,.15);
+  border-radius:10px; display:flex; align-items:center; justify-content:space-between;
+}
+
+.pace-result-label { font-size:11px; font-weight:500; color:var(--text2); }
+.pace-result-val { font-size:22px; font-weight:700; color:#6366f1; letter-spacing:-1px; }
+
+/* ── MAP TYPE CARD ───────────────────────────────────── */
+.map-type-toggle {
+  display:flex; gap:4px;
+  background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:3px;
+}
+
+.map-type-btn {
+  flex:1; padding:6px 0;
+  font-size:11px; font-weight:600;
+  cursor:pointer; border:none; background:transparent;
+  color:var(--text3); border-radius:7px; transition:all .18s; text-align:center;
+}
+
+.map-type-btn.active { background:white; color:var(--text); box-shadow:0 1px 4px rgba(0,0,0,.1); }
+
+/* ── COLOR PICKER ────────────────────────────────────── */
+.color-picker { display:flex; gap:8px; align-items:center; }
+
+.color-swatch {
+  width:32px; height:32px;
+  border-radius:50%; cursor:pointer;
+  border:3px solid transparent;
+  transition:all .18s; position:relative; flex-shrink:0;
+  box-shadow:0 2px 6px rgba(0,0,0,.15);
+}
+
+.color-swatch:hover { transform:scale(1.1); }
+.color-swatch.active { border-color:var(--text); transform:scale(1.15); box-shadow:0 0 0 2px rgba(0,0,0,.15),0 2px 10px rgba(0,0,0,.2); }
+.color-swatch::after { content:'✓'; position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:white; text-shadow:0 1px 3px rgba(0,0,0,.4); opacity:0; transition:opacity .15s; }
+.color-swatch.active::after { opacity:1; }
+.color-label { font-size:11px; font-weight:500; color:var(--text3); min-width:36px; }
+
+/* ── GENERATE BUTTON ─────────────────────────────────── */
+.gen-btn {
+  width: 100%;
+  padding: 14px;
+  background: var(--grad-btn);
+  color: white; border: none; border-radius: 12px;
+  font-family: inherit; font-size: 14px; font-weight: 700;
+  letter-spacing: .3px; cursor: pointer; transition: all .18s;
+  box-shadow: 0 4px 16px rgba(99,102,241,.35);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+
+.gen-btn svg { width:16px; height:16px; stroke:white; fill:none; stroke-width:2.5; stroke-linecap:round; stroke-linejoin:round; }
+.gen-btn:hover { background:var(--grad-btn-h); transform:translateY(-1px); box-shadow:0 8px 24px rgba(99,102,241,.45); }
+.gen-btn:active { transform:scale(.98); }
+.gen-btn:disabled { opacity:.5; cursor:not-allowed; transform:none; box-shadow:none; }
+
+/* ── STATS CARD ──────────────────────────────────────── */
+.stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+
+.stat-card {
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:10px; padding:10px 8px; text-align:center;
+}
+
+.stat-val { font-size:20px; font-weight:700; color:var(--text); line-height:1; letter-spacing:-.5px; }
+.stat-unit { font-size:9px; font-weight:600; color:var(--text3); letter-spacing:.8px; margin-top:1px; }
+.stat-lbl  { font-size:10px; font-weight:500; color:var(--text2); margin-top:3px; }
+
+/* ── ROUTE BADGE ─────────────────────────────────────── */
+.route-badge {
+  display:inline-flex; align-items:center; gap:4px;
+  padding:4px 10px; border-radius:20px;
+  font-size:11px; font-weight:600; margin-bottom:8px;
+}
+
+.badge-run  { background:var(--grad-run); color:white; }
+.badge-bike { background:var(--grad-bike); color:white; }
+
+/* ── PREVIEW BUTTON ──────────────────────────────────── */
+.preview-toggle-btn {
+  width:100%; margin-top:8px; padding:10px;
+  background:linear-gradient(135deg,rgba(99,102,241,.08),rgba(139,92,246,.08));
+  border:1px solid rgba(99,102,241,.2); border-radius:10px; cursor:pointer;
+  font-family:inherit; font-size:12px; font-weight:600;
+  color:#6366f1; transition:all .2s;
+  display:flex; align-items:center; justify-content:center; gap:7px;
+}
+
+.preview-toggle-btn svg { width:14px; height:14px; fill:#6366f1; }
+.preview-toggle-btn:hover { background:linear-gradient(135deg,rgba(99,102,241,.14),rgba(139,92,246,.14)); border-color:rgba(99,102,241,.4); }
+
+/* ── EXPORT ──────────────────────────────────────────── */
+.export-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+
+.exp-btn {
+  padding:10px; background:var(--surface2); border:1px solid var(--border);
+  border-radius:10px; cursor:pointer; transition:all .18s; text-align:center; color:var(--text);
+}
+
+.exp-btn:hover { border-color:rgba(99,102,241,.3); background:rgba(99,102,241,.04); transform:translateY(-1px); box-shadow:0 2px 8px rgba(99,102,241,.1); }
+.exp-btn.garmin:hover { border-color:#00b4d8; background:rgba(0,180,216,.04); }
+.exp-btn.strava:hover { border-color:#fc4c02; background:rgba(252,76,2,.04); }
+.exp-icon  { font-size:18px; display:block; margin-bottom:3px; }
+.exp-label { font-size:11px; font-weight:600; display:block; color:var(--text); }
+.exp-sub   { font-size:10px; color:var(--text3); }
+
+/* ── EMPTY STATE ─────────────────────────────────────── */
+.empty-state {
+  padding:32px 16px; text-align:center; color:var(--text3);
+  font-size:13px; line-height:1.7;
+}
+
+.empty-icon {
+  width:56px; height:56px;
+  background:linear-gradient(135deg,rgba(99,102,241,.1),rgba(139,92,246,.1));
+  border-radius:16px;
+  display:flex; align-items:center; justify-content:center;
+  margin:0 auto 12px;
+  font-size:26px;
+}
+
+/* ── MAP ─────────────────────────────────────────────── */
+.map-wrapper { flex:1; position:relative; min-width:0; min-height:0; }
+#map { width:100%; height:100%; }
+
+.map-controls {
+  position:absolute; top:14px; right:14px;
+  z-index:10; display:flex; flex-direction:column; gap:6px;
+}
+
+.map-ctrl {
+  width:38px; height:38px;
+  background:white; border:1px solid var(--border2);
+  border-radius:10px; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; font-size:15px; font-weight:700;
+  color:var(--text2); transition:all .18s;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+  user-select:none;
+}
+
+.map-ctrl:hover { background:var(--surface2); color:var(--text); transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,.12); }
+.map-ctrl:active { transform:scale(.94); }
+
+.map-ctrl-preview { background: linear-gradient(135deg,rgba(99,102,241,.1),rgba(139,92,246,.1)); color: #6366f1; border-color: rgba(99,102,241,.25); font-size:14px; }
+.map-ctrl-preview:hover { background: linear-gradient(135deg,#6366f1,#8b5cf6) !important; color: white !important; border-color: transparent !important; }
+.map-ctrl-preview.playing { background: linear-gradient(135deg,#6366f1,#8b5cf6); color: white; border-color: transparent; }
+
+/* ── ELEVATION ───────────────────────────────────────── */
+.elev-bar {
+  position:absolute; bottom:0; left:0; right:0; height:100px;
+  background:linear-gradient(to top,rgba(245,246,250,.95),transparent);
+  z-index:5; pointer-events:none; display:none;
+}
+
+.elev-bar canvas { position:absolute; bottom:0; left:0; width:100%; height:90px; }
+
+/* ── PREVIEW PLAYER ──────────────────────────────────── */
+.preview-bar {
+  position:absolute; bottom:0; left:0; right:0;
+  z-index:20; padding:14px 16px;
+  background:linear-gradient(to top,rgba(17,24,39,.96) 70%,transparent);
+  display:none; flex-direction:column; gap:10px;
+}
+
+.preview-bar.active { display:flex; }
+
+.preview-progress-wrap {
+  position:relative; height:3px;
+  background:rgba(255,255,255,.15); border-radius:2px; cursor:pointer;
+}
+
+.preview-progress-fill {
+  height:100%; border-radius:2px;
+  background:linear-gradient(90deg,#6366f1,#a78bfa);
+  width:0%; transition:width .1s linear; pointer-events:none;
+}
+
+.preview-progress-thumb {
+  position:absolute; top:50%; transform:translate(-50%,-50%);
+  width:12px; height:12px; border-radius:50%;
+  background:white; box-shadow:0 0 8px rgba(99,102,241,.6);
+  left:0%; pointer-events:none; transition:left .1s linear;
+}
+
+.preview-controls { display:flex; align-items:center; gap:6px; }
+
+.preview-time { font-size:11px; font-weight:500; color:rgba(255,255,255,.5); min-width:80px; font-variant-numeric:tabular-nums; }
+.preview-spacer { flex:1; }
+
+.prev-btn {
+  width:34px; height:34px;
+  background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.1);
+  border-radius:8px; cursor:pointer; font-size:11px; font-weight:700;
+  display:flex; align-items:center; justify-content:center;
+  color:rgba(255,255,255,.6); transition:all .15s; flex-shrink:0;
+  user-select:none;
+}
+
+.prev-btn:hover { background:rgba(167,139,250,.2); color:white; border-color:rgba(167,139,250,.4); }
+.prev-btn:active { transform:scale(.92); }
+
+.prev-btn.play-pause {
+  width:40px; height:40px; border-radius:50%;
+  background:linear-gradient(135deg,#6366f1,#a78bfa);
+  border:none; font-size:16px; color:white;
+  box-shadow:0 4px 12px rgba(99,102,241,.4);
+}
+
+.prev-btn.play-pause:hover { box-shadow:0 6px 16px rgba(99,102,241,.6); }
+.prev-btn.speed-active { background:rgba(167,139,250,.2); border-color:rgba(167,139,250,.5); color:#a78bfa; }
+
+/* ── HISTORY PANEL ───────────────────────────────────── */
+.history-panel {
+  position:fixed; top:0; right:0; bottom:0;
+  width:360px; background:var(--surface);
+  border-left:1px solid var(--border);
+  z-index:300; transform:translateX(100%);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+  display:flex; flex-direction:column;
+  box-shadow:-8px 0 40px rgba(0,0,0,.12);
+}
+
+.history-panel.open { transform:translateX(0); }
+
+.history-header {
+  padding:20px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:10px; flex-shrink:0;
+}
+
+.history-title { font-size:16px; font-weight:700; flex:1; color:var(--text); }
+
+.history-clear-all {
+  padding:5px 12px; background:rgba(239,68,68,.08);
+  border:1px solid rgba(239,68,68,.25); border-radius:7px;
+  cursor:pointer; font-family:inherit; font-size:11px; font-weight:600;
+  color:var(--danger); transition:all .15s; white-space:nowrap;
+  display:none;
+}
+
+.history-clear-all:hover { background:rgba(239,68,68,.15); border-color:rgba(239,68,68,.5); }
+
+.history-close {
+  width:32px; height:32px; background:var(--surface2);
+  border:1px solid var(--border); border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; font-size:14px; color:var(--text2); transition:all .15s;
+}
+
+.history-close:hover { background:rgba(239,68,68,.08); color:var(--danger); border-color:rgba(239,68,68,.2); }
+
+.history-count-row { padding:10px 20px 0; font-size:11px; color:var(--text3); font-weight:500; flex-shrink:0; }
+
+.history-list { flex:1; overflow-y:auto; padding:10px 16px; }
+.history-list::-webkit-scrollbar { width:3px; }
+.history-list::-webkit-scrollbar-thumb { background:var(--border2); border-radius:2px; }
+
+.history-item {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:12px; padding:12px 14px; margin-bottom:8px; transition:all .2s;
+  box-shadow:0 1px 4px rgba(0,0,0,.04);
+}
+
+.history-item:hover { border-color:rgba(99,102,241,.25); box-shadow:0 2px 12px rgba(99,102,241,.1); }
+
+.history-item-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
+.history-item-badge { display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:20px; font-size:10px; font-weight:600; }
+.history-item-date { font-size:10px; color:var(--text3); font-weight:500; }
+.history-item-name { font-size:13px; font-weight:600; color:var(--text); margin-bottom:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+.history-item-stats { display:flex; gap:14px; flex-wrap:wrap; }
+.history-stat { font-size:11px; color:var(--text3); font-weight:500; }
+.history-stat strong { color:var(--text2); font-weight:700; }
+
+.history-item-actions { display:flex; gap:5px; margin-top:8px; padding-top:8px; border-top:1px solid var(--border); }
+
+.hist-act-btn {
+  flex:1; padding:5px 0; background:var(--surface2); border:1px solid var(--border);
+  border-radius:7px; cursor:pointer; font-family:inherit; font-size:11px; font-weight:600;
+  color:var(--text2); transition:all .15s; text-align:center;
+}
+
+.hist-act-btn:hover     { border-color:rgba(99,102,241,.3); color:#6366f1; background:rgba(99,102,241,.04); }
+.hist-act-btn.del:hover { border-color:rgba(239,68,68,.3); color:var(--danger); background:rgba(239,68,68,.04); }
+
+.history-empty { text-align:center; padding:48px 20px; color:var(--text3); font-size:13px; line-height:1.7; }
+.history-empty-icon { font-size:40px; margin-bottom:10px; }
+
+/* ── BACKDROP ────────────────────────────────────────── */
+.panel-backdrop {
+  position:fixed; inset:0; z-index:290;
+  background:rgba(17,24,39,.3); display:none;
+  backdrop-filter:blur(4px);
+}
+
+.panel-backdrop.show { display:block; }
+
+/* ── NOTIFICATION ────────────────────────────────────── */
+.notif {
+  position:fixed; bottom:24px; right:24px; z-index:9999;
+  background:white; border:1px solid var(--border);
+  border-radius:14px; padding:14px 18px;
+  font-size:13px; font-weight:500; max-width:320px; color:var(--text);
+  box-shadow:var(--shadow-lg);
+  transform:translateY(80px); opacity:0;
+  transition:all .3s cubic-bezier(.34,1.56,.64,1);
+  display:flex; align-items:center; gap:8px;
+}
+
+.notif.show { transform:translateY(0); opacity:1; }
+.notif::before { content:''; width:4px; height:100%; position:absolute; left:0; top:0; border-radius:14px 0 0 14px; }
+.notif.success::before { background:linear-gradient(to bottom,#6366f1,#a78bfa); }
+.notif.error::before   { background:var(--danger); }
+.notif.info::before    { background:linear-gradient(to bottom,#60a5fa,#34d399); }
+
+/* ── API WARNING ─────────────────────────────────────── */
+.api-warning {
+  position:fixed; inset:0; z-index:9998;
+  background:rgba(245,246,250,.97);
+  display:none; align-items:center; justify-content:center;
+  backdrop-filter:blur(8px);
+}
+
+.api-warning.show { display:flex; }
+
+.api-warning-box {
+  background:white; border:1px solid var(--border);
+  border-radius:24px; padding:40px 36px; max-width:460px; text-align:center;
+  box-shadow:var(--shadow-lg);
+}
+
+.api-warning-icon { font-size:48px; margin-bottom:16px; }
+.api-warning-title { font-size:22px; font-weight:700; margin-bottom:12px; color:var(--text); }
+.api-warning-text { font-size:13px; color:var(--text2); line-height:1.8; }
+
+.api-warning-code {
+  margin-top:18px; padding:14px 16px;
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:10px; font-family:'SF Mono',monospace;
+  font-size:11px; color:#6366f1; text-align:left; word-break:break-all; line-height:1.7;
+}
+
+.api-warning-steps { margin-top:16px; text-align:left; font-size:12px; color:var(--text3); line-height:2; }
+
+/* ── iOS Safe Area (PWA / Notch対応) ────────────────── */
+@supports (padding: max(0px)) {
+  body {
+    padding-left:  env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  .top-bar {
+    padding-top: max(0px, env(safe-area-inset-top));
+    height: calc(60px + env(safe-area-inset-top));
+  }
+  .sidebar {
+    padding-top: max(16px, calc(env(safe-area-inset-top) + 8px));
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
+  .notif {
+    bottom: max(24px, calc(env(safe-area-inset-bottom) + 16px));
+  }
+  .preview-bar {
+    padding-bottom: max(14px, calc(env(safe-area-inset-bottom) + 8px));
+  }
+}
+
+/* ── PWA インストールバナー ──────────────────────────── */
+.pwa-install-banner {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 10000;
+  background: white;
+  border-top: 1px solid var(--border);
+  padding: 14px 20px calc(14px + env(safe-area-inset-bottom));
+  display: flex; align-items: center; gap: 12px;
+  box-shadow: 0 -8px 32px rgba(0,0,0,.1);
+  transform: translateY(100%);
+  transition: transform .4s cubic-bezier(.34,1.56,.64,1);
+}
+
+.pwa-install-banner.show { transform: translateY(0); }
+
+.pwa-install-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  background: linear-gradient(135deg,#6366f1,#8b5cf6,#a78bfa);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(99,102,241,.4);
+}
+
+.pwa-install-text { flex: 1; min-width: 0; }
+.pwa-install-title { font-size: 13px; font-weight: 700; color: var(--text); }
+.pwa-install-desc  { font-size: 11px; color: var(--text3); margin-top: 2px; }
+
+.pwa-install-btn {
+  padding: 8px 16px;
+  background: linear-gradient(135deg,#6366f1,#8b5cf6);
+  color: white; border: none; border-radius: 10px;
+  font-family: inherit; font-size: 12px; font-weight: 700;
+  cursor: pointer; white-space: nowrap; flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(99,102,241,.4);
+  transition: all .18s;
+}
+
+.pwa-install-btn:hover { box-shadow: 0 4px 16px rgba(99,102,241,.5); transform: translateY(-1px); }
+
+.pwa-install-close {
+  width: 28px; height: 28px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 12px; color: var(--text3); flex-shrink: 0; transition: all .15s;
+}
+
+.pwa-install-close:hover { background: rgba(239,68,68,.08); color: var(--danger); }
+
+/* ── PWA アップデートバナー ──────────────────────────── */
+.pwa-update-banner {
+  position: fixed;
+  top: 70px; right: 16px;
+  z-index: 10000;
+  background: white; border: 1px solid rgba(99,102,241,.3);
+  border-radius: 14px; padding: 12px 16px;
+  display: flex; align-items: center; gap: 10px;
+  box-shadow: 0 8px 32px rgba(99,102,241,.2);
+  transform: translateY(-20px); opacity: 0;
+  transition: all .4s cubic-bezier(.34,1.56,.64,1);
+  pointer-events: none;
+}
+
+.pwa-update-banner.show { transform: translateY(0); opacity: 1; pointer-events: all; }
+
+.pwa-update-text { font-size: 12px; font-weight: 600; color: var(--text); }
+.pwa-update-btn {
+  padding: 6px 12px;
+  background: var(--grad-btn); color: white; border: none;
+  border-radius: 8px; font-family: inherit; font-size: 11px; font-weight: 700;
+  cursor: pointer;
+}
+
+/* ── RESPONSIVE ──────────────────────────────────────── */
+@media (max-width:900px) {
+  :root { --panel-w:280px; }
+}
+
+@media (max-width:700px) {
+  .sidebar { display:none; }
+  :root { --panel-w:100vw; }
+
+  .content { flex-direction:column; }
+
+  .panel {
+    width:100%; height:50vh;
+    flex-direction:row; flex-wrap:wrap;
+    overflow-x:auto; overflow-y:hidden;
+    padding:10px; gap:8px;
+    align-items:flex-start;
+  }
+
+  .card { min-width:220px; flex-shrink:0; }
+
+  .map-wrapper { height:50vh; }
+}
+
+/* ── CAFE WAYPOINT ───────────────────────────────────── */
+.cafe-found-badge {
+  padding: 3px 8px;
+  background: rgba(251,146,60,.12);
+  border: 1px solid rgba(251,146,60,.3);
+  border-radius: 6px; font-size: 11px;
+  color: #c2410c; display: none;
+  align-items: center; gap: 4px;
+}
+
+.cafe-found-badge.show { display: flex; }
+.cafe-found-name { font-weight: 600; max-width: 100px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.cafe-rating { font-size: 10px; color: #92400e; font-weight: 700; background: rgba(251,146,60,.15); padding: 2px 5px; border-radius: 4px; white-space:nowrap; }
+
+/* ── GOOGLE PLACES ───────────────────────────────────── */
+.pac-container {
+  background:white !important; border:1px solid var(--border2) !important;
+  border-radius:12px !important; margin-top:4px !important;
+  box-shadow:var(--shadow-lg) !important; font-family:inherit !important;
+}
+
+.pac-item {
+  background:transparent !important; border-top:1px solid var(--border) !important;
+  padding:10px 14px !important; cursor:pointer !important;
+  color:var(--text) !important; font-size:13px !important; font-weight:500 !important;
+}
+
+.pac-item:first-child { border-top:none !important; }
+.pac-item:hover,.pac-item-selected { background:rgba(99,102,241,.05) !important; }
+.pac-item-query { color:var(--text) !important; font-weight:600 !important; font-size:13px !important; }
+.pac-matched    { color:#6366f1 !important; font-weight:700 !important; }
+.pac-icon       { display:none !important; }
+</style>
+</head>
+<body>
+
+<!-- API Key warning overlay -->
+<div class="api-warning" id="api-warning">
+  <div class="api-warning-box">
+    <div class="api-warning-icon">🗝️</div>
+    <div class="api-warning-title">APIキーを設定してください</div>
+    <div class="api-warning-text">
+      ファイルをテキストエディタで開き、<strong>YOUR_API_KEY</strong> をGoogle Maps APIキーに置き換えてください。
+    </div>
+    <div class="api-warning-code">&lt;script src="https://maps.googleapis.com/maps/api/js?<br><strong>key=YOUR_API_KEY</strong>&libraries=places,geometry..."&gt;</div>
+    <div class="api-warning-steps">① ファイルをVSCode・メモ帳などで開く<br>② <code>YOUR_API_KEY</code> を検索して置き換え<br>③ 保存してブラウザで再読み込み</div>
+  </div>
+</div>
+
+<!-- サイドバー -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAQABAADASIAAhEBAxEB/8QAHQABAQACAwEBAQAAAAAAAAAAAAEICQUGBwQCA//EAFkQAQABAwIDAwcEChADBgQHAAABAgMEBQYHEUEIITESEyIyUWGBFHGRoQkjOEJSdYKxsrMVFhcYMzZDVVZiZXKSk8HRJMLhJTdTY3OiNEaj8EV0g4TS0/H/xAAUAQEAAAAAAAAAAAAAAAAAAAAA/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAwDAQACEQMRAD8AwyAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAH//Z" alt="RunWhere Logo">
+  </div>
+  <!-- ロゴ直下にメニューをまとめる -->
+  <div class="sidebar-menu">
+    <!-- マップマーク（地図ピンアイコン） -->
+    <div class="nav-icon" title="RunWhere">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+    </div>
+    <!-- 履歴ボタン -->
+    <button class="hist-nav-btn" onclick="toggleHistory()" title="履歴 / History">
+      <svg viewBox="0 0 24 24"><path d="M12 8v4l3 3m6-3a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+      <span class="hist-count-badge" id="hist-count-badge"></span>
+    </button>
+    <!-- 言語プルダウン -->
+    <div class="lang-select-wrap">
+      <select class="lang-select" id="lang-select" onchange="setLang(this.value)" title="Language / 言語">
+        <option value="ja">JA</option>
+        <option value="en">EN</option>
+      </select>
+    </div>
+  </div>
+</nav>
+
+<!-- メインコンテンツ -->
+<div class="app-body">
+
+  <!-- トップバー -->
+  <div class="top-bar">
+    <div class="app-title">
+      RunWhere
+      <span class="app-title-sub" data-i18n="subtitle">今日どこ走る？</span>
+    </div>
+    <div class="top-bar-spacer"></div>
+    <div class="mode-toggle">
+      <button class="mode-btn active-run" id="btn-run" onclick="setMode('run')">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1"/><path d="M15.89 8.11L13.5 10.5V14l-2.5 2.5L9 14l2-2V9.5L8.11 8.11l1.5-1.5L12 9l2.39-2.39z"/><path d="M17 16.5c0 1.66-1.34 3-3 3H10c-1.66 0-3-1.34-3-3"/></svg>
+        <span data-i18n="running">ランニング</span>
+      </button>
+      <button class="mode-btn" id="btn-bike" onclick="setMode('bike')">
+        <svg viewBox="0 0 24 24"><circle cx="5.5" cy="17.5" r="3.5"/><circle cx="18.5" cy="17.5" r="3.5"/><path d="M15 6h-5l-3 7h11.5L15 6z"/><path d="M5.5 17.5L9 10"/></svg>
+        <span data-i18n="cycling">サイクリング</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- コンテンツ -->
+  <div class="content">
+
+    <!-- パネル -->
+    <div class="panel">
+
+      <!-- スタート地点 -->
+      <div class="card search-card">
+        <div class="card-label" data-i18n="start_point">スタート地点</div>
+        <div class="search-input-wrap">
+          <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="location-search" class="search-input" placeholder="駅名・住所・施設名で検索..." autocomplete="off">
+        </div>
+        <button class="gps-btn" onclick="useCurrentLocation()">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          <span data-i18n="gps_btn">現在地を自動取得</span>
+        </button>
+        <div class="start-badge" id="start-badge">
+          <span>📍</span>
+          <span class="start-badge-text" id="start-badge-text">—</span>
+          <span class="start-badge-clear" onclick="clearStart()">✕</span>
+        </div>
+      </div>
+
+      <!-- 生成ボタン（距離設定の上） -->
+      <button class="gen-btn" id="gen-btn" onclick="generateRoute()">
+        <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <span data-i18n="generate">ルートを生成</span>
+      </button>
+
+      <!-- ルート情報（生成後に表示） -->
+      <div id="stats-section" style="display:none">
+        <div class="card" style="margin-bottom:10px">
+          <div id="route-badge-wrap"></div>
+          <div class="card-label" style="margin-top:4px" data-i18n="route_info">ルート情報</div>
+          <div class="stats-grid">
+            <div class="stat-card"><div class="stat-val" id="s-dist">—</div><div class="stat-unit">KM</div><div class="stat-lbl" data-i18n="st_dist">距離</div></div>
+            <div class="stat-card"><div class="stat-val" id="s-time">—</div><div class="stat-unit">MIN</div><div class="stat-lbl" data-i18n="st_time">目安時間</div></div>
+            <div class="stat-card"><div class="stat-val" id="s-elev">—</div><div class="stat-unit">M</div><div class="stat-lbl" data-i18n="st_elev">獲得標高</div></div>
+            <div class="stat-card"><div class="stat-val" id="s-sigs">—</div><div class="stat-unit" data-i18n="st_sigs_unit">箇所</div><div class="stat-lbl" data-i18n="st_sigs">信号推定</div></div>
+            <div class="stat-card"><div class="stat-val" id="s-diff">—</div><div class="stat-unit"></div><div class="stat-lbl" data-i18n="st_diff">難易度</div></div>
+          </div>
+          <button class="preview-toggle-btn" onclick="togglePreview()">
+            <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3" fill="#6366f1"/></svg>
+            <span data-i18n="preview">ルートをプレビュー</span>
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="card-label" data-i18n="export">エクスポート</div>
+          <button onclick="exportGPX('gpx')" style="
+            width:100%; padding:12px; border:none; border-radius:10px;
+            background:linear-gradient(135deg,#6366f1,#8b5cf6);
+            color:white; font-family:inherit; font-size:13px; font-weight:600;
+            cursor:pointer; display:flex; align-items:center; justify-content:center;
+            gap:8px; transition:all .18s;
+            box-shadow:0 4px 12px rgba(99,102,241,.3);
+          " onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 6px 20px rgba(99,102,241,.4)'"
+             onmouseout="this.style.transform='';this.style.boxShadow='0 4px 12px rgba(99,102,241,.3)'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span data-i18n="gpx_download">GPXファイルをダウンロード</span>
+          </button>
+          <div style="margin-top:8px;font-size:11px;color:var(--text3);line-height:1.5"><span data-i18n="garmin_tip">💡 Garmin ConnectにドラッグするとGarminデバイスへ転送できます</span></div>
+        </div>
+      </div>
+
+      <!-- 距離設定 -->
+      <div class="card dist-card">
+        <div class="card-label" data-i18n="distance">距離設定</div>
+        <div class="dist-num-wrap" style="margin-bottom:10px">
+          <input type="number" id="dist-input" class="dist-input" value="5" min="1" max="200" oninput="updatePaceResult()">
+          <span class="dist-unit">KM</span>
+        </div>
+        <div class="presets">
+          <div class="preset" onclick="setDist(3)">3K</div>
+          <div class="preset" onclick="setDist(5)">5K</div>
+          <div class="preset" onclick="setDist(10)">10K</div>
+          <div class="preset" onclick="setDist(21)">HM</div>
+          <div class="preset" onclick="setDist(42)">FM</div>
+        </div>
+      </div>
+
+      <!-- ルートオプション -->
+      <div class="card">
+        <div class="card-label" data-i18n="route_options">ルートオプション</div>
+        <div class="options-grid">
+          <div class="opt-card" id="opt-less-signals" onclick="toggleOpt('less-signals')">
+            <div class="opt-icon">🚦</div>
+            <div class="opt-title" data-i18n="opt_signals">信号が少ない</div>
+            <div class="opt-desc" data-i18n="opt_signals_d">交差点・信号を最小化</div>
+          </div>
+          <div class="opt-card" id="opt-flat" onclick="toggleOpt('flat')">
+            <div class="opt-icon">📏</div>
+            <div class="opt-title" data-i18n="opt_flat">フラットコース</div>
+            <div class="opt-desc" data-i18n="opt_flat_d">高低差を最小限に</div>
+          </div>
+          <div class="opt-card" id="opt-hilly" onclick="toggleOpt('hilly')">
+            <div class="opt-icon">⛰️</div>
+            <div class="opt-title" data-i18n="opt_hilly">アップダウン</div>
+            <div class="opt-desc" data-i18n="opt_hilly_d">起伏でトレーニング強化</div>
+          </div>
+          <div class="opt-card" id="opt-scenic" onclick="toggleOpt('scenic')">
+            <div class="opt-icon">🌸</div>
+            <div class="opt-title" data-i18n="opt_scenic">景観ルート</div>
+            <div class="opt-desc" data-i18n="opt_scenic_d">公園・川沿いを優先</div>
+          </div>
+          <div class="opt-card sel" id="opt-loop" onclick="toggleOpt('loop')">
+            <div class="opt-icon">🔄</div>
+            <div class="opt-title" data-i18n="opt_loop">ループコース</div>
+            <div class="opt-desc" data-i18n="opt_loop_d">スタートへ戻るルート</div>
+          </div>
+          <div class="opt-card" id="opt-outback" onclick="toggleOpt('outback')">
+            <div class="opt-icon">↩️</div>
+            <div class="opt-title" data-i18n="opt_out">折り返し</div>
+            <div class="opt-desc" data-i18n="opt_out_d">往復コース</div>
+          </div>
+          <!-- カフェに行く：他のopt-cardと同じ高さに -->
+          <div class="opt-card" id="opt-cafe" onclick="toggleOpt('cafe')" style="grid-column:1/-1;display:flex;align-items:center;gap:10px;flex-direction:row">
+            <div class="opt-icon" style="margin-bottom:0;font-size:18px;flex-shrink:0">☕</div>
+            <div style="flex:1">
+              <div class="opt-title" data-i18n="opt_cafe_title">カフェに行く</div>
+              <div class="opt-desc" data-i18n="opt_cafe_d">評価4以上の高評価カフェを経由地に追加</div>
+            </div>
+          </div>
+          <!-- JS参照用（非表示） -->
+          <div id="cafe-found-badge" style="display:none">
+            <span id="cafe-found-name"></span>
+            <span id="cafe-found-rating"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ペース設定 -->
+      <div class="card">
+        <div class="card-label" data-i18n="pace">ペース設定</div>
+        <div class="pace-row">
+          <input type="number" id="pace-min" class="pace-input" value="6" min="3" max="20" oninput="updatePaceResult()">
+          <span class="pace-sep">:</span>
+          <input type="number" id="pace-sec" class="pace-input" value="00" min="0" max="59" oninput="updatePaceResult()">
+          <span class="pace-unit" data-i18n="pace_unit">分/km</span>
+        </div>
+        <div class="pace-result">
+          <span class="pace-result-label" data-i18n="est_time">目安タイム</span>
+          <span class="pace-result-val" id="pace-result-val">—</span>
+        </div>
+      </div>
+
+      <!-- 地図タイプ -->
+      <div class="card">
+        <div class="card-label" data-i18n="map_type">地図タイプ</div>
+        <div class="map-type-toggle">
+          <button class="map-type-btn active" id="mt-normal"    onclick="setMapType('normal')"><span data-i18n="mt_normal">標準</span></button>
+          <button class="map-type-btn"        id="mt-satellite" onclick="setMapType('satellite')"><span data-i18n="mt_satellite">衛星</span></button>
+          <button class="map-type-btn"        id="mt-terrain"   onclick="setMapType('terrain')"><span data-i18n="mt_terrain">地形</span></button>
+          <button class="map-type-btn"        id="mt-dark"      onclick="setMapType('dark')"><span data-i18n="mt_dark">ダーク</span></button>
+        </div>
+      </div>
+
+      <!-- ルートカラー -->
+      <div class="card">
+        <div class="card-label" data-i18n="route_color">ルートカラー</div>
+        <div class="color-picker">
+          <div class="color-swatch active" id="rc-pink"  style="background:#8b5cf6" onclick="setRouteColor('pink',  '#8b5cf6')" title="パープル"></div>
+          <div class="color-swatch"        id="rc-green" style="background:#6366f1" onclick="setRouteColor('green', '#6366f1')" title="インジゴ"></div>
+          <div class="color-swatch"        id="rc-blue"  style="background:#3b82f6" onclick="setRouteColor('blue',  '#3b82f6')" title="ブルー"></div>
+          <div class="color-swatch"        id="rc-red"   style="background:#06b6d4" onclick="setRouteColor('red',   '#06b6d4')" title="シアン"></div>
+          <span class="color-label" id="rc-label">パープル</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- マップ -->
+    <div class="map-wrapper">
+      <div id="map"></div>
+
+      <div class="map-controls">
+        <div class="map-ctrl" title="拡大" onclick="gmap.setZoom(gmap.getZoom()+1)">＋</div>
+        <div class="map-ctrl" title="縮小" onclick="gmap.setZoom(gmap.getZoom()-1)">－</div>
+        <div class="map-ctrl" title="現在地" onclick="centerOnUser()">📍</div>
+        <div class="map-ctrl" title="ルートをフィット" onclick="fitRoute()">🎯</div>
+        <div class="map-ctrl map-ctrl-preview" id="map-preview-btn" title="プレビュー" onclick="togglePreview()">▶</div>
+        <div class="map-ctrl" title="クリア" onclick="clearRoute()">🗑️</div>
+      </div>
+
+      <div class="elev-bar" id="elev-bar">
+        <canvas id="elev-canvas"></canvas>
+      </div>
+
+      <!-- プレビュープレイヤー -->
+      <div class="preview-bar" id="preview-bar">
+        <div class="preview-progress-wrap" id="preview-progress-wrap" onclick="previewSeek(event)">
+          <div class="preview-progress-fill" id="preview-progress-fill"></div>
+          <div class="preview-progress-thumb" id="preview-progress-thumb"></div>
+        </div>
+        <div class="preview-controls">
+          <span class="preview-time" id="preview-time">0:00 / 0:00</span>
+          <div class="preview-spacer"></div>
+          <div class="prev-btn" title="1/10スロー" id="prev-s10" onclick="previewSetSpeed(0.1)">1/10</div>
+          <div class="prev-btn" title="1/5スロー"  id="prev-s5"  onclick="previewSetSpeed(0.2)">1/5</div>
+          <div class="prev-btn" title="最初に戻る" onclick="previewRewind()">⏮</div>
+          <div class="prev-btn play-pause" id="prev-playpause" title="再生/一時停止" onclick="previewTogglePlay()">▶</div>
+          <div class="prev-btn speed-active" title="標準（15秒）" id="prev-1x"  onclick="previewSetSpeed(1)">1×</div>
+          <div class="prev-btn" title="5倍速"  id="prev-5x"  onclick="previewSetSpeed(5)">5×</div>
+          <div class="prev-btn" title="10倍速" id="prev-10x" onclick="previewSetSpeed(10)">10×</div>
+          <div class="prev-btn" title="閉じる" onclick="stopPreview()">✕</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- 履歴バックドロップ -->
+<div class="panel-backdrop" id="panel-backdrop" onclick="toggleHistory()"></div>
+
+<!-- 履歴パネル -->
+<div class="history-panel" id="history-panel">
+  <div class="history-header">
+    <div class="history-title" data-i18n="history">ルート履歴</div>
+    <button class="history-clear-all" id="history-clear-all" onclick="clearAllHistory()"><span data-i18n="clear_all">一括削除</span></button>
+    <div class="history-close" onclick="toggleHistory()">✕</div>
+  </div>
+  <div class="history-count-row" id="history-count-row"></div>
+  <div class="history-list" id="history-list"></div>
+</div>
+
+<div class="notif" id="notif"></div>
+
+<!-- ── PWA インストールバナー ──────────────────────── -->
+<div class="pwa-install-banner" id="pwa-install-banner">
+  <div class="pwa-install-icon">🏃</div>
+  <div class="pwa-install-text">
+    <div class="pwa-install-title">RunWhere をインストール</div>
+    <div class="pwa-install-desc">ホーム画面に追加してオフラインでも使えます</div>
+  </div>
+  <button class="pwa-install-btn" id="pwa-install-btn">追加</button>
+  <div class="pwa-install-close" id="pwa-install-close">✕</div>
+</div>
+
+<!-- ── PWA アップデートバナー ──────────────────────── -->
+<div class="pwa-update-banner" id="pwa-update-banner">
+  <div class="pwa-update-text">🆕 新しいバージョンが利用可能です</div>
+  <button class="pwa-update-btn" id="pwa-update-btn">更新</button>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────
+let gmap = null;
+let userLocation = null;
+let startMarker = null;
+let routePolylines = [];
+let currentRoute = null;
+let currentMode = 'run';
+let selectedOpts = new Set(['loop']);
+let autocomplete = null;
+let directionsService = null;
+let currentMapType = 'normal';
+let darkStyle = null;
+let monoStyle = [
+  { elementType: 'geometry',            stylers: [{ saturation: -100 }] },
+  { elementType: 'labels.text.fill',    stylers: [{ saturation: -100 }, { lightness: -20 }] },
+  { elementType: 'labels.text.stroke',  stylers: [{ saturation: -100 }] },
+  { featureType: 'water', elementType: 'geometry', stylers: [{ saturation: -100 }, { lightness: 40 }] },
+  { featureType: 'poi',   elementType: 'geometry', stylers: [{ saturation: -100 }, { lightness: 10 }] },
+  { featureType: 'road',  elementType: 'geometry', stylers: [{ saturation: -100 }] },
+];
+let routeHistory = JSON.parse(localStorage.getItem('routeai_history') || '[]');
+let turnsEnabled = true;   // デフォルトでオン（16回）
+let turnsCount = 16;       // 曲がり角の回数デフォルト16回
+let routeColor = '#8b5cf6'; // デフォルト：パープル
+let cafeWaypoint = null;   // カフェ経由地
+let cafeMarker   = null;   // マップ上のカフェマーカー
+
+function clearCafeMarker() {
+  if (cafeMarker) { cafeMarker.setMap(null); cafeMarker = null; }
+}
+
+function placeCafeMarker(lat, lng, name, rating) {
+  clearCafeMarker();
+  cafeMarker = new google.maps.Marker({
+    position: { lat, lng },
+    map: gmap,
+    title: `☕ ${name}（★${rating}）`,
+    icon: {
+      path: google.maps.SymbolPath.CIRCLE,
+      scale: 11,
+      fillColor: '#f97316',   // オレンジ
+      fillOpacity: 1,
+      strokeColor: '#ffffff',
+      strokeWeight: 3,
+    },
+    zIndex: 100,
+  });
+
+  // ポップアップ
+  const infoWindow = new google.maps.InfoWindow({
+    content: `<div style="font-family:sans-serif;padding:4px 6px;min-width:120px">
+      <div style="font-weight:700;font-size:13px">☕ ${name}</div>
+      <div style="color:#f97316;font-size:12px;margin-top:2px">★ ${rating.toFixed(1)}</div>
+    </div>`
+  });
+
+  cafeMarker.addListener('click', () => {
+    infoWindow.open(gmap, cafeMarker);
+  });
+
+  // 自動で一度開く
+  infoWindow.open(gmap, cafeMarker);
+}
+
+// ─── INIT (Google Maps callback) ─────────
+function initMap() {
+  darkStyle = [
+    { elementType: 'geometry', stylers: [{ color: '#12151a' }] },
+    { elementType: 'labels.text.stroke', stylers: [{ color: '#0a0c0f' }] },
+    { elementType: 'labels.text.fill', stylers: [{ color: '#6b7280' }] },
+    { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#252a35' }] },
+    { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#1a1e26' }] },
+    { featureType: 'road', elementType: 'labels.text.fill', stylers: [{ color: '#4b5563' }] },
+    { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#2d3748' }] },
+    { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#6b7280' }] },
+    { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#0d1117' }] },
+    { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#3d4350' }] },
+    { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#161b22' }] },
+    { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#0f1a10' }] },
+    { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#1a1e26' }] },
+    { featureType: 'administrative', elementType: 'geometry', stylers: [{ color: '#252a35' }] },
+    { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#9ca3af' }] },
+  ];
+
+  gmap = new google.maps.Map(document.getElementById('map'), {
+    center: { lat: 35.6852, lng: 139.7528 },
+    zoom: 14,
+    styles: monoStyle,
+    mapTypeId: 'roadmap',
+    mapTypeControl: false,
+    streetViewControl: false,
+    fullscreenControl: false,
+    zoomControlOptions: { position: google.maps.ControlPosition.RIGHT_BOTTOM },
+  });
+
+  directionsService = new google.maps.DirectionsService();
+
+  // Places Autocomplete (Japanese)
+  const input = document.getElementById('location-search');
+  autocomplete = new google.maps.places.Autocomplete(input, {
+    fields: ['geometry', 'name', 'formatted_address'],
+  });
+
+  autocomplete.addListener('place_changed', () => {
+    const place = autocomplete.getPlace();
+    if (!place.geometry) { notify('⚠️ 場所が見つかりませんでした', 'error'); return; }
+    const lat = place.geometry.location.lat();
+    const lng = place.geometry.location.lng();
+    setStartPoint(lat, lng, place.name || place.formatted_address);
+  });
+
+  // Click on map to set start
+  gmap.addListener('click', (e) => {
+    reverseGeocode(e.latLng.lat(), e.latLng.lng());
+  });
+
+  // Auto-get location silently
+  tryAutoLocation();
+  updateHistoryBadge();
+  renderHistoryList();
+  updatePaceResult();
+}
+
+// ─── LOCATION ────────────────────────────
+function tryAutoLocation() {
+  if (!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(
+    (pos) => setStartPoint(pos.coords.latitude, pos.coords.longitude, '現在地（GPS）'),
+    () => {},
+    { timeout: 5000 }
+  );
+}
+
+function useCurrentLocation() {
+  if (!navigator.geolocation) { notify('⚠️ 位置情報が利用できません', 'error'); return; }
+  notify(t('notify_gps'), 'info');
+  navigator.geolocation.getCurrentPosition(
+    (pos) => setStartPoint(pos.coords.latitude, pos.coords.longitude, '現在地（GPS）'),
+    () => notify(t('notify_gps_err'), 'error'),
+    { timeout: 8000, enableHighAccuracy: true }
+  );
+}
+
+function reverseGeocode(lat, lng) {
+  new google.maps.Geocoder().geocode({ location: { lat, lng }, language: 'ja' }, (res, status) => {
+    const name = (status === 'OK' && res[0])
+      ? res[0].formatted_address.replace(/^日本、〒?\d{3}-?\d{4}\s*/, '').split(',')[0]
+      : `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+    setStartPoint(lat, lng, name);
+  });
+}
+
+function setStartPoint(lat, lng, label) {
+  userLocation = { lat, lng };
+  if (startMarker) startMarker.setMap(null);
+
+  startMarker = new google.maps.Marker({
+    position: { lat, lng },
+    map: gmap,
+    title: label,
+    icon: {
+      path: google.maps.SymbolPath.CIRCLE,
+      scale: 10,
+      fillColor: currentMode === 'run' ? '#00ff88' : '#4da6ff',
+      fillOpacity: 1,
+      strokeColor: '#ffffff',
+      strokeWeight: 3,
+    }
+  });
+
+  gmap.panTo({ lat, lng });
+  if (gmap.getZoom() < 14) gmap.setZoom(14);
+
+  const short = label.length > 32 ? label.slice(0, 32) + '…' : label;
+  document.getElementById('start-badge-text').textContent = short;
+  document.getElementById('start-badge').classList.add('show');
+  document.getElementById('location-search').value = '';
+  notify(t('notify_start') + short, 'success');
+}
+
+function clearStart() {
+  userLocation = null;
+  if (startMarker) { startMarker.setMap(null); startMarker = null; }
+  document.getElementById('start-badge').classList.remove('show');
+  notify('スタート地点をリセットしました', 'info');
+}
+
+// ─── MODE / OPTIONS ───────────────────────
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('btn-run').className  = 'mode-btn ' + (mode === 'run'  ? 'active-run'  : '');
+  document.getElementById('btn-bike').className = 'mode-btn ' + (mode === 'bike' ? 'active-bike' : '');
+  if (startMarker) startMarker.setIcon({
+    path: google.maps.SymbolPath.CIRCLE, scale: 10,
+    fillColor: mode === 'run' ? '#00ff88' : '#4da6ff',
+    fillOpacity: 1, strokeColor: '#ffffff', strokeWeight: 3,
+  });
+}
+
+function setDist(km) { document.getElementById('dist-input').value = km; updatePaceResult(); }
+
+function toggleOpt(opt) {
+  if (opt === 'loop'    && selectedOpts.has('outback')) selectedOpts.delete('outback');
+  if (opt === 'outback' && selectedOpts.has('loop'))    selectedOpts.delete('loop');
+  if (opt === 'flat'    && selectedOpts.has('hilly'))   selectedOpts.delete('hilly');
+  if (opt === 'hilly'   && selectedOpts.has('flat'))    selectedOpts.delete('flat');
+
+  selectedOpts.has(opt) ? selectedOpts.delete(opt) : selectedOpts.add(opt);
+
+  // .opt-card と .opt-card-wide 両方を更新
+  document.querySelectorAll('.opt-card, .opt-card-wide').forEach(c => {
+    c.classList.toggle('sel', selectedOpts.has(c.id.replace('opt-', '')));
+  });
+
+  // カフェをオフにしたらバッジとマーカーをクリア
+  if (opt === 'cafe' && !selectedOpts.has('cafe')) {
+    document.getElementById('cafe-found-badge').classList.remove('show');
+    clearCafeMarker();
+  }
+}
+
+// ─── ROUTE GENERATION ─────────────────────
+async function generateRoute() {
+  if (!userLocation) { notify(t('err_no_start'), 'error'); return; }
+
+  let distKm = parseFloat(document.getElementById('dist-input').value);
+  if (!distKm || distKm < 0.5) { notify(t('err_distance'), 'error'); return; }
+
+  const btn = document.getElementById('gen-btn');
+  btn.disabled = true; btn.textContent = t('generating');
+
+  // カフェ経由がONなら先に検索
+  cafeWaypoint = null;
+  clearCafeMarker();
+  document.getElementById('cafe-found-badge').classList.remove('show');
+
+  try {
+    if (selectedOpts.has('cafe')) {
+      notify('☕ 付近の高評価カフェを検索中...', 'info');
+      cafeWaypoint = await findNearbyCafe(userLocation.lat, userLocation.lng, distKm / 2);
+      if (cafeWaypoint) {
+        notify(`☕ 「${cafeWaypoint.name}」(★${cafeWaypoint.rating.toFixed(1)}) を経由地に追加しました`, 'success');
+      }
+    }
+    await computeRoute(userLocation.lat, userLocation.lng, distKm);
+  } catch(e) {
+    console.error(e);
+    notify(t('err_route'), 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = t('generate');
+  }
+}
+
+function buildWaypoints(lat, lng, distKm, scaleFactor = 1.0) {
+  const isLoop = selectedOpts.has('loop') || !selectedOpts.has('outback');
+  const wps = [];
+
+  if (isLoop) {
+    // 経由点数（少ないほど大きな円弧 = 往復しにくい）
+    const n = 3; // 常に3点固定（三角形が最も大きな周回になる）
+
+    // ★ 半径を大幅に拡大：目標距離の1/3を一辺とした正三角形の外接円
+    // 正三角形: 辺 = distKm/3、外接円半径 = 辺 / √3
+    const sideKm    = (distKm / n) * scaleFactor;
+    const radiusKm  = sideKm / Math.sqrt(3) * 1.5; // さらに1.5倍大きく
+    const radiusDeg = radiusKm / 111;
+
+    // ランダムな基準方向
+    const base = Math.random() * 360;
+
+    for (let i = 0; i < n; i++) {
+      // 均等な120度間隔 + 小さなランダムズレ（±8度）
+      const jitter   = (Math.random() - 0.5) * 16;
+      const angleDeg = base + (360 / n) * i + jitter;
+      const angleRad = angleDeg * Math.PI / 180;
+
+      // stopover: true → 必ずその地点を通過させる（往復防止の核心）
+      wps.push({
+        location: {
+          lat: lat + radiusDeg * Math.cos(angleRad),
+          lng: lng + radiusDeg * Math.sin(angleRad) / Math.cos(lat * Math.PI / 180)
+        },
+        stopover: true
+      });
+    }
+  } else {
+    // 折り返し
+    const targetDeg = (distKm / 2) / 111 * scaleFactor;
+    const angleRad  = Math.random() * 2 * Math.PI;
+    wps.push({
+      location: {
+        lat: lat + targetDeg * Math.cos(angleRad),
+        lng: lng + targetDeg * Math.sin(angleRad) / Math.cos(lat * Math.PI / 180)
+      },
+      stopover: true
+    });
+  }
+
+  return { wps, isLoop };
+}
+
+// cafeWaypointをwaypointsリストに挿入するヘルパー
+function injectCafeWaypoint(wps) {
+  if (!cafeWaypoint || !selectedOpts.has('cafe')) return wps;
+  // ループの中間あたりに挿入（最初と最後の間）
+  const insertAt = Math.max(1, Math.floor(wps.length / 2));
+  const result = [...wps];
+  result.splice(insertAt, 0, {
+    location: cafeWaypoint.location,
+    stopover: true   // stopover:true で確実に通過
+  });
+  return result;
+}
+
+function computeRoute(lat, lng, targetKm) {
+  return new Promise((resolve, reject) => {
+    const MAX_ATTEMPTS = 6;
+    const TOLERANCE_KM = 0.8; // stopover:trueは距離がブレやすいので許容を広げる
+    let scaleFactor = 1.0;
+    let attempt_count = 0;
+
+    const origin = new google.maps.LatLng(lat, lng);
+    // 常にWALKING固定（自動車・自転車専用道・有料道路・フェリー・トンネルを回避）
+    const travelMode = google.maps.TravelMode.WALKING;
+
+    function tryRoute() {
+      attempt_count++;
+
+      const { wps, isLoop } = buildWaypoints(lat, lng, targetKm, scaleFactor);
+      const finalWps = injectCafeWaypoint(wps);
+
+      const req = {
+        origin,
+        destination: isLoop ? origin : finalWps[finalWps.length - 1].location,
+        waypoints: isLoop ? finalWps : finalWps.slice(0, -1),
+        travelMode,
+        optimizeWaypoints: false,
+        unitSystem: google.maps.UnitSystem.METRIC,
+        avoidHighways: true,   // 高速・自動車専用道を回避
+        avoidTolls: true,      // 有料道路（トンネル含む）を回避
+        avoidFerries: true,    // フェリー・海底トンネルを回避
+      };
+
+      directionsService.route(req, (result, status) => {
+        if (status !== google.maps.DirectionsStatus.OK) {
+          reject(new Error(status));
+          return;
+        }
+
+        const allLegs  = result.routes[0].legs;
+        const actualKm = allLegs.reduce((s, l) => s + l.distance.value, 0) / 1000;
+        const errorKm  = Math.abs(actualKm - targetKm);
+
+        // ±500m以内 or 試行上限に達したら確定
+        if (errorKm <= TOLERANCE_KM || attempt_count >= MAX_ATTEMPTS) {
+          renderRoute(result, targetKm, actualKm);
+          resolve();
+          return;
+        }
+
+        // 距離が離れている → スケールを比率で補正して再試行
+        scaleFactor *= (targetKm / actualKm);
+        scaleFactor = Math.max(0.4, Math.min(3.0, scaleFactor));
+
+        tryRoute();
+      });
+    }
+
+    tryRoute();
+  });
+}
+
+function renderRoute(result, targetKm, actualKm) {
+  // Clear old
+  routePolylines.forEach(p => p.setMap(null));
+  routePolylines = [];
+
+  const path = [];
+  result.routes[0].legs.forEach(l => l.steps.forEach(s => s.path.forEach(p => path.push(p))));
+
+  const color = routeColor;
+
+  // Glow layer
+  routePolylines.push(new google.maps.Polyline({
+    path, geodesic: true, strokeColor: color,
+    strokeOpacity: 0.18, strokeWeight: 14, map: gmap
+  }));
+
+  // Main line
+  routePolylines.push(new google.maps.Polyline({
+    path, geodesic: true, strokeColor: color,
+    strokeOpacity: 0.95, strokeWeight: 4, map: gmap
+  }));
+
+  const bounds = new google.maps.LatLngBounds();
+  path.forEach(p => bounds.extend(p));
+  gmap.fitBounds(bounds, { top: 60, right: 60, bottom: 120, left: 60 });
+
+  const allLegs = result.routes[0].legs;
+  const dist    = actualKm !== undefined ? actualKm : allLegs.reduce((s,l) => s + l.distance.value, 0) / 1000;
+  const dur     = allLegs.reduce((s,l) => s + l.duration.value, 0) / 60;
+  const elev    = selectedOpts.has('hilly') ? Math.round(dist*18) : Math.round(dist*5);
+  const sigs    = selectedOpts.has('less-signals') ? Math.round(dist*0.8) : Math.round(dist*2.4);
+  const diff    = selectedOpts.has('hilly') ? '上級' : selectedOpts.has('flat') ? '初級' : '中級';
+
+  document.getElementById('s-dist').textContent = dist.toFixed(1);
+  document.getElementById('s-time').textContent = Math.round(dur);
+  document.getElementById('s-elev').textContent = elev;
+  document.getElementById('s-sigs').textContent = sigs;
+  document.getElementById('s-diff').textContent = diff;
+
+  document.getElementById('route-badge-wrap').innerHTML = currentMode === 'run'
+    ? `<span class="route-badge badge-run">${t('running')}</span>`
+    : `<span class="route-badge badge-bike">${t('cycling')}</span>`;
+
+  document.getElementById('stats-section').style.display = 'block';
+  
+
+  drawElevation(dist, elev);
+  currentRoute = { path, distKm: dist };
+
+  // ペース設定が入力されていれば所要時間を上書き
+  const pMin = parseInt(document.getElementById('pace-min').value) || 0;
+  const pSec = parseInt(document.getElementById('pace-sec').value) || 0;
+  const paceSec = pMin * 60 + pSec;
+  const displayTime = paceSec > 0 ? Math.round(dist * paceSec / 60) : Math.round(dur);
+  document.getElementById('s-time').textContent = displayTime;
+  updatePaceResult();
+
+  // 履歴に自動保存
+  const startLabel = document.getElementById('start-badge-text').textContent || '不明';
+  saveRouteToHistory({ mode: currentMode, startLabel, distKm: dist, timeMin: displayTime, elevM: elev, opts: [...selectedOpts], path });
+
+  notify(`✅ ${dist.toFixed(1)}${t('notify_generated')}`, 'success');
+}
+
+// ─── CAFE WAYPOINT ────────────────────────
+function findNearbyCafe(lat, lng, radiusKm) {
+  return new Promise((resolve) => {
+    if (!selectedOpts.has('cafe')) { resolve(null); return; }
+
+    const service = new google.maps.places.PlacesService(gmap);
+    const searchRadius = Math.min(radiusKm * 600, 5000); // ルート半径に応じて検索範囲を調整（最大5km）
+
+    service.nearbySearch({
+      location: { lat, lng },
+      radius: searchRadius,
+      type: 'cafe',
+      rankBy: google.maps.places.RankBy.PROMINENCE,
+    }, (results, status) => {
+      if (status !== google.maps.places.PlacesServiceStatus.OK || !results.length) {
+        resolve(null);
+        return;
+      }
+
+      // 評価4以上のカフェをフィルタリング
+      const highRated = results.filter(p => p.rating && p.rating >= 4.0);
+
+      if (!highRated.length) {
+        notify('☕ 付近に評価4以上のカフェが見つかりませんでした', 'info');
+        resolve(null);
+        return;
+      }
+
+      // 評価順にソートして上位から選ぶ（少しランダム性を持たせる）
+      highRated.sort((a, b) => b.rating - a.rating);
+      const topN = highRated.slice(0, Math.min(5, highRated.length));
+      const chosen = topN[Math.floor(Math.random() * topN.length)];
+
+      const cafeLat = chosen.geometry.location.lat();
+      const cafeLng = chosen.geometry.location.lng();
+
+      // バッジに表示
+      document.getElementById('cafe-found-name').textContent = chosen.name;
+      document.getElementById('cafe-found-rating').textContent = `★ ${chosen.rating.toFixed(1)}`;
+      document.getElementById('cafe-found-badge').classList.add('show');
+
+      // マップにマーカーを立てる
+      placeCafeMarker(cafeLat, cafeLng, chosen.name, chosen.rating);
+
+      resolve({
+        location: { lat: cafeLat, lng: cafeLng },
+        stopover: true,
+        name: chosen.name,
+        rating: chosen.rating
+      });
+    });
+  });
+}
+function toggleTurnsOpt(e) {
+  turnsEnabled = !turnsEnabled;
+  const card = document.getElementById('opt-turns');
+  const presets = document.getElementById('turns-presets');
+  card.classList.toggle('sel', turnsEnabled);
+  presets.classList.toggle('show', turnsEnabled);
+}
+
+function changeTurns(delta) {
+  turnsCount = Math.max(8, Math.min(16, turnsCount + delta * 2)); // 2刻みで変化
+  document.getElementById('turns-val').textContent = turnsCount;
+  updateTurnsPresetHighlight();
+  if (!turnsEnabled) {
+    turnsEnabled = true;
+    document.getElementById('opt-turns').classList.add('sel');
+    document.getElementById('turns-presets').classList.add('show');
+  }
+}
+
+function setTurns(n, e) {
+  if (e) e.stopPropagation();
+  turnsCount = n;
+  document.getElementById('turns-val').textContent = n;
+  updateTurnsPresetHighlight();
+  if (!turnsEnabled) {
+    turnsEnabled = true;
+    document.getElementById('opt-turns').classList.add('sel');
+    document.getElementById('turns-presets').classList.add('show');
+  }
+}
+
+function updateTurnsPresetHighlight() {
+  document.querySelectorAll('.turns-preset').forEach(btn => {
+    btn.classList.toggle('active', parseInt(btn.textContent) === turnsCount);
+  });
+}
+
+// ─── PACE CALCULATOR ──────────────────────
+function updatePaceResult() {
+  const distKm = parseFloat(document.getElementById('dist-input').value) || 0;
+  const pMin   = parseInt(document.getElementById('pace-min').value)  || 0;
+  const pSec   = parseInt(document.getElementById('pace-sec').value)  || 0;
+  const paceTotalSec = pMin * 60 + pSec;
+  const el = document.getElementById('pace-result-val');
+  if (distKm > 0 && paceTotalSec > 0) {
+    const totalSec = distKm * paceTotalSec;
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    const s = Math.floor(totalSec % 60);
+    el.textContent = h > 0
+      ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`
+      : `${m}:${String(s).padStart(2,'0')}`;
+    if (currentRoute) document.getElementById('s-time').textContent = Math.round(distKm * paceTotalSec / 60);
+  } else {
+    el.textContent = '—';
+  }
+}
+
+// ─── MAP TYPE ─────────────────────────────
+function setMapType(type) {
+  currentMapType = type;
+  document.querySelectorAll('.map-type-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('mt-' + type).classList.add('active');
+  if (!gmap) return;
+  if (type === 'dark') {
+    gmap.setMapTypeId('roadmap');
+    gmap.setOptions({ styles: darkStyle });
+  } else if (type === 'normal') {
+    gmap.setOptions({ styles: monoStyle });
+    gmap.setMapTypeId('roadmap');
+  } else if (type === 'satellite') {
+    gmap.setOptions({ styles: [] });
+    gmap.setMapTypeId('hybrid');
+  } else if (type === 'terrain') {
+    gmap.setOptions({ styles: [] });
+    gmap.setMapTypeId('terrain');
+  }
+}
+
+// ─── ROUTE COLOR ──────────────────────────
+const COLOR_LABELS = { pink:'パープル', green:'インジゴ', blue:'ブルー', red:'シアン' };
+
+function setRouteColor(id, hex) {
+  routeColor = hex;
+
+  // スウォッチのactive切替
+  document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
+  document.getElementById('rc-' + id).classList.add('active');
+  document.getElementById('rc-label').textContent = COLOR_LABELS[id];
+
+  // 既存ルートがあれば即座に色を更新
+  if (routePolylines.length > 0) {
+    routePolylines[0].setOptions({ strokeColor: hex }); // glow
+    routePolylines[1].setOptions({ strokeColor: hex }); // main
+  }
+}
+
+// ─── HISTORY ──────────────────────────────
+function saveRouteToHistory(data) {
+  const entry = {
+    id: Date.now(),
+    date: new Date().toLocaleDateString('ja-JP', { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' }),
+    mode: data.mode, startLabel: data.startLabel,
+    distKm: data.distKm, timeMin: data.timeMin, elevM: data.elevM, opts: [...data.opts],
+    opts: [...data.opts],
+    pathData: data.path.map(p => ({ lat: p.lat(), lng: p.lng() })),
+  };
+  routeHistory.unshift(entry);
+  if (routeHistory.length > 30) routeHistory = routeHistory.slice(0, 30);
+  localStorage.setItem('routeai_history', JSON.stringify(routeHistory));
+  updateHistoryBadge();
+  renderHistoryList();
+}
+
+function updateHistoryBadge() {
+  const badge = document.getElementById('hist-count-badge');
+  if (!badge) return;
+  if (routeHistory.length > 0) { badge.textContent = routeHistory.length; badge.classList.add('show'); }
+  else badge.classList.remove('show');
+}
+
+function toggleHistory() {
+  const panel    = document.getElementById('history-panel');
+  const backdrop = document.getElementById('panel-backdrop');
+  const isOpen   = panel.classList.toggle('open');
+  backdrop.classList.toggle('show', isOpen);
+  if (isOpen) renderHistoryList(); // 開くたびに最新リストを表示
+}
+
+function renderHistoryList() {
+  const list     = document.getElementById('history-list');
+  const count    = document.getElementById('history-count-row');
+  const clearBtn = document.getElementById('history-clear-all');
+  if (!list) return;
+
+  if (routeHistory.length === 0) {
+    count.textContent = '';
+    if (clearBtn) clearBtn.style.display = 'none';
+    list.innerHTML = `<div class="history-empty"><div class="history-empty-icon">🗂️</div>${t('hist_empty').replace('\n','<br>')}</div>`;
+    return;
+  }
+
+  count.textContent = routeHistory.length + t('hist_count');
+  if (clearBtn) clearBtn.style.display = 'inline-block';
+
+  const optIcons = { loop:'🔄', outback:'↩️', flat:'📏', hilly:'⛰️', scenic:'🌸', 'less-signals':'🚦' };
+  list.innerHTML = routeHistory.map(item => {
+    const isRun = item.mode === 'run';
+    const tags  = (item.opts || []).map(o => optIcons[o] || '').join(' ');
+    return `
+    <div class="history-item">
+      <div class="history-item-header">
+        <span class="history-item-badge ${isRun ? 'badge-run' : 'badge-bike'}">${isRun ? t('badge_run') : t('badge_bike')}</span>
+        <span class="history-item-date">${item.date}</span>
+      </div>
+      <div class="history-item-name">📍 ${item.startLabel || '不明'}</div>
+      <div class="history-item-stats">
+        <span class="history-stat"><strong>${item.distKm.toFixed(1)}</strong> km</span>
+        <span class="history-stat"><strong>${item.timeMin}</strong> min</span>
+        <span class="history-stat"><strong>${item.elevM}</strong> m↑</span>
+      </div>
+      ${tags ? `<div style="margin-top:6px;font-size:13px">${tags}</div>` : ''}
+      <div class="history-item-actions">
+        <div class="hist-act-btn" onclick="loadHistoryRoute(${item.id})">🗺️ 表示</div>
+        <div class="hist-act-btn" onclick="exportHistoryGPX(${item.id})">📁 GPX</div>
+        <div class="hist-act-btn del" onclick="deleteHistoryRoute(${item.id})">🗑️ 削除</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function clearAllHistory() {
+  if (!confirm(`${routeHistory.length}${t('confirm_clear')}`)) return;
+  routeHistory = [];
+  localStorage.setItem('routeai_history', JSON.stringify(routeHistory));
+  updateHistoryBadge();
+  renderHistoryList();
+  notify(t('notify_clear'), 'info');
+}
+
+function loadHistoryRoute(id) {
+  const item = routeHistory.find(r => r.id === id);
+  if (!item || !item.pathData) return;
+  routePolylines.forEach(p => p.setMap(null)); routePolylines = [];
+  const path  = item.pathData.map(p => new google.maps.LatLng(p.lat, p.lng));
+  const color = routeColor;
+  routePolylines.push(new google.maps.Polyline({ path, geodesic:true, strokeColor:color, strokeOpacity:0.18, strokeWeight:14, map:gmap }));
+  routePolylines.push(new google.maps.Polyline({ path, geodesic:true, strokeColor:color, strokeOpacity:0.95, strokeWeight:4,  map:gmap }));
+  const bounds = new google.maps.LatLngBounds();
+  path.forEach(p => bounds.extend(p));
+  gmap.fitBounds(bounds, { top:60, right:60, bottom:80, left:60 });
+  currentRoute = { path, distKm: item.distKm };
+  document.getElementById('s-dist').textContent = item.distKm.toFixed(1);
+  document.getElementById('s-time').textContent = item.timeMin;
+  document.getElementById('s-elev').textContent = item.elevM;
+  document.getElementById('s-sigs').textContent = '—';
+  document.getElementById('s-diff').textContent = '—';
+  document.getElementById('route-badge-wrap').innerHTML = item.mode === 'run'
+    ? `<span class="route-badge badge-run">${t('running')}</span>`
+    : `<span class="route-badge badge-bike">${t('cycling')}</span>`;
+  document.getElementById('stats-section').style.display = 'block';
+  
+  toggleHistory();
+  notify(`📂 「${item.startLabel}」${t('notify_hist_load')}`, 'success');
+}
+
+function deleteHistoryRoute(id) {
+  routeHistory = routeHistory.filter(r => r.id !== id);
+  localStorage.setItem('routeai_history', JSON.stringify(routeHistory));
+  updateHistoryBadge(); renderHistoryList();
+  notify(t('notify_hist_del'), 'info');
+}
+
+function exportHistoryGPX(id) {
+  const item = routeHistory.find(r => r.id === id);
+  if (!item || !item.pathData) return;
+  const now  = new Date().toISOString();
+  const name = `ROUTEAI_${item.mode==='run'?'RUN':'BIKE'}_${item.date.replace(/[\/\s:]/g,'')}`;
+  let gpx = `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Route AI" xmlns="http://www.topografix.com/GPX/1/1">\n  <metadata><n>${name}</n><time>${now}</time></metadata>\n  <trk>\n    <n>${name}</n>\n    <type>${item.mode==='run'?'running':'cycling'}</type>\n    <trkseg>\n`;
+  item.pathData.forEach(p => { gpx += `      <trkpt lat="${p.lat.toFixed(7)}" lon="${p.lng.toFixed(7)}"></trkpt>\n`; });
+  gpx += `    </trkseg>\n  </trk>\n</gpx>`;
+  const blob = new Blob([gpx], { type:'application/gpx+xml' });
+  const url  = URL.createObjectURL(blob);
+  const a = Object.assign(document.createElement('a'), { href:url, download:`${name}.gpx` });
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  notify('📁 GPXをダウンロードしました', 'success');
+}
+
+// ─── MAP CONTROLS ─────────────────────────
+function centerOnUser() { if (userLocation) gmap.panTo(userLocation); }
+
+function fitRoute() {
+  if (!routePolylines.length) return;
+  const bounds = new google.maps.LatLngBounds();
+  routePolylines[0].getPath().forEach(p => bounds.extend(p));
+  gmap.fitBounds(bounds, { top: 60, right: 60, bottom: 120, left: 60 });
+}
+
+function clearRoute() {
+  if (previewState.active) stopPreview();
+  routePolylines.forEach(p => p.setMap(null)); routePolylines = [];
+  currentRoute = null;
+  clearCafeMarker();
+  document.getElementById('stats-section').style.display = 'none';
+  
+  document.getElementById('elev-bar').style.display = 'none';
+}
+
+// ─── ELEVATION CHART ──────────────────────
+function drawElevation(distKm, gain) {
+  const bar = document.getElementById('elev-bar');
+  const cv  = document.getElementById('elev-canvas');
+  bar.style.display = 'block';
+  cv.width  = cv.offsetWidth || 800;
+  cv.height = 90;
+  const ctx = cv.getContext('2d');
+  const pts = 80, hs = [];
+  let cur = 50;
+  for (let i = 0; i < pts; i++) {
+    cur = Math.max(15, Math.min(85, cur + (Math.random()-0.5) * (gain/pts*4)));
+    hs.push(cur);
+  }
+  const W = cv.width, H = cv.height;
+  const mn = Math.min(...hs), mx = Math.max(...hs);
+  const ny = v => H - ((v-mn)/(mx-mn+1)) * (H*0.72);
+  ctx.clearRect(0,0,W,H);
+  const g = ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0, routeColor + 'cc');
+  g.addColorStop(1, 'rgba(240,242,232,0)');
+  ctx.beginPath(); ctx.moveTo(0,H);
+  hs.forEach((h,i) => ctx.lineTo((i/(pts-1))*W, ny(h)));
+  ctx.lineTo(W,H); ctx.closePath();
+  ctx.fillStyle = g; ctx.fill();
+  ctx.beginPath();
+  hs.forEach((h,i) => { const x=(i/(pts-1))*W; i===0?ctx.moveTo(x,ny(h)):ctx.lineTo(x,ny(h)); });
+  ctx.strokeStyle = routeColor;
+  ctx.lineWidth = 2; ctx.stroke();
+}
+
+// ─── GPX EXPORT ───────────────────────────
+function exportGPX(target) {
+  if (!currentRoute) { notify('⚠️ 先にルートを生成してください', 'error'); return; }
+  const now  = new Date().toISOString();
+  const name = `ROUTEAI_${currentMode==='run'?'RUN':'BIKE'}_${new Date().toLocaleDateString('ja-JP').replace(/\//g,'')}`;
+  let gpx = `<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Route AI" xmlns="http://www.topografix.com/GPX/1/1">\n  <metadata><n>${name}</n><time>${now}</time></metadata>\n  <trk>\n    <n>${name}</n>\n    <type>${currentMode==='run'?'running':'cycling'}</type>\n    <trkseg>\n`;
+  currentRoute.path.forEach(p => { gpx += `      <trkpt lat="${p.lat().toFixed(7)}" lon="${p.lng().toFixed(7)}"></trkpt>\n`; });
+  gpx += `    </trkseg>\n  </trk>\n</gpx>`;
+  const blob = new Blob([gpx], { type: 'application/gpx+xml' });
+  const url  = URL.createObjectURL(blob);
+  const a = Object.assign(document.createElement('a'), { href: url, download: `${name}.gpx` });
+  document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
+  const msgs = { garmin:t('gpx_dl_garmin'), wahoo:t('gpx_dl_wahoo'), strava:t('gpx_dl_strava'), gpx:t('gpx_dl_gpx') };
+  notify(msgs[target], 'success');
+}
+
+// ─── ROUTE PREVIEW ────────────────────────
+let previewState = {
+  active:    false,
+  playing:   false,
+  progress:  0,       // 0.0 〜 1.0
+  speed:     1,       // 1 / 5 / 10
+  rafId:     null,
+  lastTs:    null,
+  duration:  15000,   // ms（15秒で全体を1周＝標準）
+  marker:    null,
+};
+
+function togglePreview() {
+  if (!currentRoute || currentRoute.path.length < 2) {
+    notify('⚠️ 先にルートを生成してください', 'error');
+    return;
+  }
+  if (previewState.active) {
+    stopPreview();
+  } else {
+    startPreview();
+  }
+}
+
+function startPreview() {
+  previewState.active   = true;
+  previewState.playing  = true;
+  previewState.progress = 0;
+  previewState.speed    = 1;
+  previewState.lastTs   = null;
+
+  // プレビューバーを表示
+  document.getElementById('preview-bar').classList.add('active');
+  document.getElementById('prev-playpause').textContent = '⏸';
+  // 全ボタンリセット → 1×をアクティブに
+  ['prev-s10','prev-s5','prev-1x','prev-5x','prev-10x'].forEach(id => {
+    document.getElementById(id).classList.remove('speed-active');
+  });
+  document.getElementById('prev-1x').classList.add('speed-active');
+
+  // ランナーマーカー作成
+  if (previewState.marker) previewState.marker.setMap(null);
+  const icon = {
+    path: google.maps.SymbolPath.CIRCLE,
+    scale: 10,
+    fillColor: routeColor,
+    fillOpacity: 1,
+    strokeColor: '#ffffff',
+    strokeWeight: 3,
+  };
+  const startPos = currentRoute.path[0];
+  const startLatLng = (typeof startPos.lat === 'function')
+    ? startPos
+    : new google.maps.LatLng(startPos.lat, startPos.lng);
+
+  previewState.marker = new google.maps.Marker({
+    position: startLatLng,
+    map: gmap,
+    icon,
+    zIndex: 999,
+  });
+
+  // ルートにフィット
+  fitRoute();
+
+  // マップ上のプレビューボタンを更新
+  const mapBtn = document.getElementById('map-preview-btn');
+  if (mapBtn) { mapBtn.textContent = '⏹'; mapBtn.classList.add('playing'); mapBtn.title = 'プレビューを停止'; }
+
+  // アニメーション開始
+  previewState.rafId = requestAnimationFrame(previewTick);
+  notify('▶ プレビュー開始', 'success');
+}
+
+function previewTick(ts) {
+  if (!previewState.playing) return;
+
+  if (previewState.lastTs !== null) {
+    const delta = ts - previewState.lastTs;
+    previewState.progress += (delta * previewState.speed) / previewState.duration;
+  }
+  previewState.lastTs = ts;
+
+  // ループ終了チェック
+  if (previewState.progress >= 1.0) {
+    previewState.progress = 1.0;
+    previewState.playing  = false;
+    document.getElementById('prev-playpause').textContent = '▶';
+    updatePreviewMarker();
+    updatePreviewUI();
+    return;
+  }
+
+  updatePreviewMarker();
+  updatePreviewUI();
+  previewState.rafId = requestAnimationFrame(previewTick);
+}
+
+function updatePreviewMarker() {
+  const path = currentRoute.path;
+  const t    = previewState.progress;
+  const idx  = t * (path.length - 1);
+  const lo   = Math.floor(idx);
+  const hi   = Math.min(lo + 1, path.length - 1);
+  const frac = idx - lo;
+
+  // LatLng オブジェクト or plain {lat,lng} 両対応
+  const getLat = p => (typeof p.lat === 'function') ? p.lat() : p.lat;
+  const getLng = p => (typeof p.lng === 'function') ? p.lng() : p.lng;
+
+  const lat = getLat(path[lo]) + (getLat(path[hi]) - getLat(path[lo])) * frac;
+  const lng = getLng(path[lo]) + (getLng(path[hi]) - getLng(path[lo])) * frac;
+  const pos = new google.maps.LatLng(lat, lng);
+
+  previewState.marker.setPosition(pos);
+
+  // マーカーが画面外に出たらパン
+  const bounds = gmap.getBounds();
+  if (bounds && !bounds.contains(pos)) {
+    gmap.panTo(pos);
+  }
+}
+
+function updatePreviewUI() {
+  const t       = previewState.progress;
+  // 経過時間は常にduration基準（speed非依存）で表示
+  const elapsed = t * (previewState.duration / 1000);
+  const total   = previewState.duration / 1000;
+
+  const fmt = s => {
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return `${m}:${String(sec).padStart(2, '0')}`;
+  };
+
+  document.getElementById('preview-time').textContent =
+    `${fmt(elapsed)} / ${fmt(total)}`;
+  document.getElementById('preview-progress-fill').style.width  = `${t * 100}%`;
+  document.getElementById('preview-progress-thumb').style.left  = `${t * 100}%`;
+}
+
+function previewTogglePlay() {
+  if (!previewState.active) return;
+  previewState.playing = !previewState.playing;
+  document.getElementById('prev-playpause').textContent = previewState.playing ? '⏸' : '▶';
+
+  if (previewState.playing) {
+    previewState.lastTs = null;
+    previewState.rafId  = requestAnimationFrame(previewTick);
+  } else {
+    cancelAnimationFrame(previewState.rafId);
+  }
+}
+
+function previewSetSpeed(s) {
+  previewState.speed = s;
+  previewState.lastTs = null;
+
+  // 全ボタンリセット
+  ['prev-s10','prev-s5','prev-1x','prev-5x','prev-10x'].forEach(id => {
+    document.getElementById(id).classList.remove('speed-active');
+  });
+
+  // 対応するボタンをハイライト
+  const idMap = { 0.1:'prev-s10', 0.2:'prev-s5', 1:'prev-1x', 5:'prev-5x', 10:'prev-10x' };
+  if (idMap[s]) document.getElementById(idMap[s]).classList.add('speed-active');
+}
+
+function previewRewind() {
+  previewState.progress = 0;
+  previewState.lastTs   = null;
+  previewState.playing  = true;
+  document.getElementById('prev-playpause').textContent = '⏸';
+  updatePreviewMarker();
+  updatePreviewUI();
+  if (!previewState.rafId) {
+    previewState.rafId = requestAnimationFrame(previewTick);
+  }
+}
+
+function previewSeek(e) {
+  const wrap = document.getElementById('preview-progress-wrap');
+  const rect = wrap.getBoundingClientRect();
+  const t    = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  previewState.progress = t;
+  previewState.lastTs   = null;
+  updatePreviewMarker();
+  updatePreviewUI();
+}
+
+function stopPreview() {
+  cancelAnimationFrame(previewState.rafId);
+  previewState.active  = false;
+  previewState.playing = false;
+  previewState.rafId   = null;
+
+  document.getElementById('preview-bar').classList.remove('active');
+
+  // マップ上のプレビューボタンをリセット
+  const mapBtn = document.getElementById('map-preview-btn');
+  if (mapBtn) { mapBtn.textContent = '▶'; mapBtn.classList.remove('playing'); mapBtn.title = 'プレビュー'; }
+
+  if (previewState.marker) {
+    previewState.marker.setMap(null);
+    previewState.marker = null;
+  }
+}
+
+// ─── i18n ─────────────────────────────────
+const i18n = {
+  ja: {
+    subtitle:    '今日どこ走る？',
+    running:     'ランニング',
+    cycling:     'サイクリング',
+    start_point: 'スタート地点',
+    distance:    '距離設定',
+    route_options:'ルートオプション',
+    pace:        'ペース設定',
+    map_type:    '地図タイプ',
+    route_color: 'ルートカラー',
+    route_info:  'ルート情報',
+    export:      'エクスポート',
+    gps_btn:     '現在地を自動取得',
+    opt_signals: '信号が少ない',
+    opt_signals_d:'交差点・信号を最小化',
+    opt_flat:    'フラットコース',
+    opt_flat_d:  '高低差を最小限に',
+    opt_hilly:   'アップダウン',
+    opt_hilly_d: '起伏でトレーニング強化',
+    opt_scenic:  '景観ルート',
+    opt_scenic_d:'公園・川沿いを優先',
+    opt_loop:    'ループコース',
+    opt_loop_d:  'スタートへ戻るルート',
+    opt_out:     '折り返し',
+    opt_out_d:   '往復コース',
+    opt_turns:   '曲がり角の設定',
+    opt_turns_d: '少ないほど直線的で走りやすいルートに',
+    pace_unit:   '分/km',
+    est_time:    '目安タイム',
+    mt_normal:   '標準',
+    mt_satellite:'衛星',
+    mt_terrain:  '地形',
+    mt_dark:     'ダーク',
+    generate:    'ルートを生成',
+    st_dist:     '距離',
+    st_time:     '目安時間',
+    st_elev:     '獲得標高',
+    st_sigs_unit:'箇所',
+    st_sigs:     '信号推定',
+    st_diff:     '難易度',
+    preview:     'ルートをプレビュー',
+    gpx_download: 'GPXファイルをダウンロード',
+    history:     'ルート履歴',
+    clear_all:   '一括削除',
+    garmin_tip:  '💡 Garmin ConnectにドラッグするとGarminデバイスへ転送できます',
+    badge_run:   '🏃 ラン',
+    badge_bike:  '🚴 バイク',
+    notify_start:'📍 スタート地点：',
+    notify_gps:  '📡 現在地を取得中...',
+    notify_gps_ok:'📍 現在地を取得しました',
+    notify_gps_err:'❌ 現在地の取得に失敗しました',
+    notify_generated: 'kmのルートを生成しました',
+    notify_hist_load: 'のルートを読み込みました',
+    notify_hist_del:  '🗑️ ルートを削除しました',
+    hist_count:  '件のルート',
+    hist_empty:  'まだ保存されたルートはありません。\nルートを生成すると自動的に保存されます。',
+    confirm_clear:'件のルートをすべて削除しますか？',
+    notify_clear: '🗑️ 履歴をすべて削除しました',
+    gpx_dl_garmin:'⌚ Garmin Connectにドラッグ&ドロップでデバイスへ転送できます',
+    gpx_dl_wahoo: '📡 Wahoo Fitnessアプリからインポートしてください',
+    gpx_dl_strava:'🔥 Stravaの「活動をアップロード」からインポートできます',
+    gpx_dl_gpx:   '📁 GPXファイルをダウンロードしました',
+    err_no_start: '📍 スタート地点を設定してください',
+    err_distance: '⚠️ 1km以上の距離を入力してください',
+    err_route:    '❌ ルート生成に失敗しました。APIキーと有効なAPIを確認してください。',
+    generating:   '生成中...',
+    cafe_option:  'カフェ経由',
+    opt_cafe_title:'カフェに行く',
+    opt_cafe:     'Googleの評価4以上のカフェを経由',
+    opt_cafe_d:   '評価4以上の高評価カフェを経由地に追加',
+  },
+  en: {
+    subtitle:    'RunWhere',
+    running:     'Running',
+    cycling:     'Cycling',
+    start_point: 'Start Point',
+    distance:    'Distance',
+    route_options:'Route Options',
+    pace:        'Pace',
+    map_type:    'Map Type',
+    route_color: 'Route Color',
+    route_info:  'Route Info',
+    export:      'Export',
+    gps_btn:     'Use Current Location',
+    opt_signals: 'Fewer Signals',
+    opt_signals_d:'Minimize traffic lights',
+    opt_flat:    'Flat Course',
+    opt_flat_d:  'Minimize elevation gain',
+    opt_hilly:   'Hilly Course',
+    opt_hilly_d: 'Hills for better training',
+    opt_scenic:  'Scenic Route',
+    opt_scenic_d:'Prefer parks & riversides',
+    opt_loop:    'Loop Course',
+    opt_loop_d:  'Return to start point',
+    opt_out:     'Out & Back',
+    opt_out_d:   'Go and return same way',
+    opt_turns:   'Turn Settings',
+    opt_turns_d: 'Fewer turns = straighter, more comfortable route',
+    pace_unit:   'min/km',
+    est_time:    'Est. Time',
+    mt_normal:   'Map',
+    mt_satellite:'Satellite',
+    mt_terrain:  'Terrain',
+    mt_dark:     'Dark',
+    generate:    'Generate Route',
+    st_dist:     'Distance',
+    st_time:     'Est. Time',
+    st_elev:     'Elevation',
+    st_sigs_unit:'pts',
+    st_sigs:     'Signals',
+    st_diff:     'Level',
+    preview:     'Preview Route',
+    gpx_download: 'Download GPX File',
+    history:     'Route History',
+    clear_all:   'Clear All',
+    garmin_tip:  '💡 Drag & drop GPX into Garmin Connect to transfer to your device',
+    badge_run:   '🏃 Run',
+    badge_bike:  '🚴 Bike',
+    notify_start:'📍 Start: ',
+    notify_gps:  '📡 Getting location...',
+    notify_gps_ok:'📍 Location acquired',
+    notify_gps_err:'❌ Failed to get location',
+    notify_generated: 'km route generated',
+    notify_hist_load: ' route loaded',
+    notify_hist_del:  '🗑️ Route deleted',
+    hist_count:  ' routes',
+    hist_empty:  'No saved routes yet.\nRoutes will be saved automatically after generation.',
+    confirm_clear:' routes will be deleted. Are you sure?',
+    notify_clear: '🗑️ History cleared',
+    gpx_dl_garmin:'⌚ Drag & drop into Garmin Connect to transfer to device',
+    gpx_dl_wahoo: '📡 Import via Wahoo Fitness app',
+    gpx_dl_strava:'🔥 Import via Strava "Upload Activity"',
+    gpx_dl_gpx:   '📁 GPX file downloaded',
+    err_no_start: '📍 Please set a start point',
+    err_distance: '⚠️ Please enter at least 1km',
+    err_route:    '❌ Route generation failed. Check your API key.',
+    generating:   'Generating...',
+    cafe_option:  'Cafe Stop',
+    opt_cafe_title:'Go to a Cafe',
+    opt_cafe:     'Stop at a highly-rated cafe (4★+)',
+    opt_cafe_d:   'Add a top-rated cafe as a waypoint',
+  }
+};
+
+let currentLang = 'ja';
+
+function setLang(lang) {
+  currentLang = lang;
+  const sel = document.getElementById('lang-select');
+  if (sel) sel.value = lang;
+
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n');
+    if (i18n[lang][key]) el.textContent = i18n[lang][key];
+  });
+}
+
+function t(key) {
+  return i18n[currentLang][key] || i18n['ja'][key] || key;
+}
+
+// ─── NOTIFICATION ─────────────────────────
+let _nt;
+function notify(msg, type='info') {
+  const el = document.getElementById('notif');
+  el.textContent = msg; el.className = `notif ${type} show`;
+  clearTimeout(_nt); _nt = setTimeout(() => el.classList.remove('show'), 4200);
+}
+
+// ─── PWA: Service Worker 登録 ─────────────
+(function() {
+  if (!('serviceWorker' in navigator)) return;
+
+  let swRegistration = null;
+  let deferredInstallPrompt = null;
+
+  // SW を登録
+  window.addEventListener('load', async () => {
+    try {
+      swRegistration = await navigator.serviceWorker.register('./sw.js', {
+        scope: './'
+      });
+      console.log('[PWA] Service Worker registered:', swRegistration.scope);
+
+      // アップデート検知
+      swRegistration.addEventListener('updatefound', () => {
+        const newWorker = swRegistration.installing;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            showUpdateBanner();
+          }
+        });
+      });
+
+      // 既存のコントローラーがある場合はアップデートをチェック
+      if (swRegistration.waiting) showUpdateBanner();
+
+    } catch (err) {
+      console.warn('[PWA] Service Worker registration failed:', err);
+    }
+  });
+
+  // ─── インストールバナー ──────────────────
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+
+    // インストール済みまたは非表示設定済みならスキップ
+    if (localStorage.getItem('pwa_install_dismissed')) return;
+    if (window.matchMedia('(display-mode: standalone)').matches) return;
+
+    // 少し遅らせて表示（UX配慮）
+    setTimeout(() => {
+      const banner = document.getElementById('pwa-install-banner');
+      if (banner) banner.classList.add('show');
+    }, 3000);
+  });
+
+  // インストールボタン
+  const installBtn = document.getElementById('pwa-install-btn');
+  if (installBtn) {
+    installBtn.addEventListener('click', async () => {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      const { outcome } = await deferredInstallPrompt.userChoice;
+      console.log('[PWA] Install prompt outcome:', outcome);
+      deferredInstallPrompt = null;
+      hideBanner();
+    });
+  }
+
+  // バナー閉じるボタン
+  const closeBtn = document.getElementById('pwa-install-close');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', () => {
+      localStorage.setItem('pwa_install_dismissed', '1');
+      hideBanner();
+    });
+  }
+
+  function hideBanner() {
+    const banner = document.getElementById('pwa-install-banner');
+    if (banner) banner.classList.remove('show');
+  }
+
+  // ─── アップデートバナー ──────────────────
+  function showUpdateBanner() {
+    const banner = document.getElementById('pwa-update-banner');
+    if (banner) {
+      setTimeout(() => banner.classList.add('show'), 500);
+    }
+  }
+
+  const updateBtn = document.getElementById('pwa-update-btn');
+  if (updateBtn) {
+    updateBtn.addEventListener('click', async () => {
+      if (swRegistration && swRegistration.waiting) {
+        swRegistration.waiting.postMessage({ type: 'SKIP_WAITING' });
+      }
+      window.location.reload();
+    });
+  }
+
+  // ─── インストール完了検知 ────────────────
+  window.addEventListener('appinstalled', () => {
+    console.log('[PWA] App installed!');
+    hideBanner();
+    deferredInstallPrompt = null;
+    notify('✅ RunWhere をホーム画面に追加しました！', 'success');
+  });
+
+  // ─── スタンドアローンモード時の調整 ────────
+  if (window.matchMedia('(display-mode: standalone)').matches ||
+      window.navigator.standalone === true) {
+    console.log('[PWA] Running as standalone app');
+    document.body.classList.add('pwa-standalone');
+  }
+
+  // ─── URLパラメータによるモード初期化 ────────
+  // manifest.json の shortcuts で ?mode=run / ?mode=bike を渡した場合に対応
+  const params = new URLSearchParams(window.location.search);
+  const modeParam = params.get('mode');
+  if (modeParam === 'bike') {
+    window.addEventListener('DOMContentLoaded', () => setMode('bike'));
+  } else if (modeParam === 'run') {
+    window.addEventListener('DOMContentLoaded', () => setMode('run'));
+  }
+})();
+</script>
+</body>
+</html>
