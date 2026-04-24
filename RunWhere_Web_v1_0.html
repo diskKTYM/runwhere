@@ -983,16 +983,16 @@ body {
   }
   .bs-overlay.show { opacity: 1; pointer-events: all; }
 
-  /* ── ボトムシート本体 ── */
+  /* ── ボトムシート本体：グラデーション背景 ── */
   .bottom-sheet {
     display: flex;
     flex-direction: column;
     position: fixed;
     left: 0; right: 0; bottom: 0;
     z-index: 500;
-    background: white;
+    background: linear-gradient(160deg, #4f46e5 0%, #7c3aed 40%, #2563eb 100%);
     border-radius: 20px 20px 0 0;
-    box-shadow: 0 -8px 40px rgba(0,0,0,.18);
+    box-shadow: 0 -8px 40px rgba(79,70,229,.35);
     transition: transform .38s cubic-bezier(.32,1,.5,1);
     will-change: transform;
     max-height: 92dvh;
@@ -1015,7 +1015,7 @@ body {
 
   .bs-handle {
     width: 36px; height: 4px;
-    background: #d1d5db; border-radius: 2px;
+    background: rgba(255,255,255,.35); border-radius: 2px;
   }
 
   /* ── ピーク時：検索バー + モードトグル ── */
@@ -1028,15 +1028,16 @@ body {
   .bs-search-mini {
     flex: 1;
     display: flex; align-items: center; gap: 8px;
-    background: var(--surface2); border: 1px solid var(--border2);
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.25);
     border-radius: 12px; padding: 10px 12px;
-    font-size: 13px; color: var(--text3);
+    font-size: 13px; color: rgba(255,255,255,.8);
     cursor: pointer;
   }
 
   .bs-search-mini svg {
     width: 15px; height: 15px;
-    stroke: var(--text3); fill: none; stroke-width: 2;
+    stroke: rgba(255,255,255,.7); fill: none; stroke-width: 2;
     stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;
   }
 
@@ -1070,40 +1071,40 @@ body {
 
   .bs-section-title {
     font-size: 10px; font-weight: 700; letter-spacing: 1px;
-    color: var(--text3); text-transform: uppercase;
+    color: rgba(255,255,255,.55); text-transform: uppercase;
     margin-bottom: 8px;
   }
 
   /* ── 検索入力（展開時） ── */
   .bs-search-full {
     display: flex; align-items: center; gap: 8px;
-    background: white; border: 1px solid var(--border2);
+    background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.25);
     border-radius: 12px; padding: 0 12px;
-    box-shadow: 0 1px 4px rgba(0,0,0,.06);
     margin-bottom: 8px;
   }
 
   .bs-search-full svg {
     width: 15px; height: 15px;
-    stroke: var(--text3); fill: none; stroke-width: 2;
+    stroke: rgba(255,255,255,.7); fill: none; stroke-width: 2;
     stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;
   }
 
   .bs-search-full input {
     flex: 1; border: none; outline: none; background: transparent;
-    font-size: 14px; font-family: inherit; color: var(--text);
+    font-size: 14px; font-family: inherit; color: white;
     padding: 12px 0;
   }
 
-  .bs-search-full input::placeholder { color: var(--text3); }
+  .bs-search-full input::placeholder { color: rgba(255,255,255,.5); }
 
   /* ── GPS ボタン ── */
   .bs-gps-btn {
     width: 100%; padding: 10px;
-    background: rgba(99,102,241,.06); border: 1px dashed rgba(99,102,241,.3);
+    background: rgba(255,255,255,.12); border: 1px dashed rgba(255,255,255,.3);
     border-radius: 10px; cursor: pointer;
     font-family: inherit; font-size: 13px; font-weight: 500;
-    color: #6366f1;
+    color: white;
     display: flex; align-items: center; justify-content: center; gap: 6px;
     margin-bottom: 6px;
   }
@@ -1113,31 +1114,31 @@ body {
   /* ── 距離スライダー ── */
   .bs-dist-row {
     display: flex; align-items: center; gap: 10px;
-    background: var(--surface2); border: 1px solid var(--border);
+    background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
     border-radius: 14px; padding: 12px 14px;
   }
 
   .bs-dist-num {
-    font-size: 36px; font-weight: 700; color: #6366f1;
+    font-size: 36px; font-weight: 700; color: white;
     letter-spacing: -1px; min-width: 64px; text-align: center;
     line-height: 1;
   }
 
-  .bs-dist-unit { font-size: 12px; font-weight: 600; color: var(--text3); margin-top: 4px; }
+  .bs-dist-unit { font-size: 12px; font-weight: 600; color: rgba(255,255,255,.6); margin-top: 4px; }
 
   .bs-dist-right { flex: 1; }
 
   .bs-dist-slider {
     width: 100%; height: 4px;
     -webkit-appearance: none; appearance: none;
-    background: linear-gradient(to right, #6366f1 var(--pct, 20%), #e5e7eb var(--pct, 20%));
+    background: linear-gradient(to right, white var(--pct, 20%), rgba(255,255,255,.25) var(--pct, 20%));
     border-radius: 2px; outline: none; cursor: pointer; margin-bottom: 8px;
   }
 
   .bs-dist-slider::-webkit-slider-thumb {
     -webkit-appearance: none; width: 20px; height: 20px;
-    background: white; border: 3px solid #6366f1;
-    border-radius: 50%; box-shadow: 0 2px 8px rgba(99,102,241,.3);
+    background: white; border: 3px solid rgba(255,255,255,.8);
+    border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,.2);
     cursor: pointer;
   }
 
@@ -1145,13 +1146,35 @@ body {
 
   .bs-dist-preset {
     flex: 1; padding: 5px 0; text-align: center;
-    background: white; border: 1px solid var(--border2);
+    background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
     border-radius: 7px; font-size: 11px; font-weight: 600;
-    color: var(--text2); cursor: pointer; transition: all .15s;
+    color: rgba(255,255,255,.8); cursor: pointer; transition: all .15s;
   }
 
   .bs-dist-preset.active,
-  .bs-dist-preset:active { background: #6366f1; color: white; border-color: #6366f1; }
+  .bs-dist-preset:active { background: white; color: #6366f1; border-color: white; }
+
+  /* ── ペース／速度入力 ── */
+  .bs-pace-row {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+  }
+
+  .bs-pace-input {
+    width: 52px; background: rgba(255,255,255,.15);
+    border: 1px solid rgba(255,255,255,.3); border-radius: 10px;
+    padding: 8px 6px; font-size: 20px; font-weight: 700;
+    font-family: inherit; color: white; outline: none; text-align: center;
+  }
+
+  .bs-pace-sep { font-size: 20px; font-weight: 300; color: rgba(255,255,255,.6); }
+  .bs-pace-unit { font-size: 12px; font-weight: 500; color: rgba(255,255,255,.6); }
+
+  .bs-pace-result {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 14px;
+    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
+    border-radius: 10px;
+  }
 
   /* ── オプション（横2列グリッド） ── */
   .bs-opts-grid {
@@ -1159,47 +1182,33 @@ body {
   }
 
   .bs-opt {
-    background: var(--surface2); border: 1px solid var(--border);
+    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
     border-radius: 12px; padding: 10px 10px 8px;
     cursor: pointer; transition: all .18s; text-align: left;
   }
 
   .bs-opt.sel {
-    background: linear-gradient(135deg,rgba(99,102,241,.1),rgba(139,92,246,.1));
-    border-color: rgba(99,102,241,.4);
+    background: rgba(255,255,255,.25);
+    border-color: rgba(255,255,255,.5);
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
   }
 
   .bs-opt-icon { font-size: 18px; margin-bottom: 4px; }
-  .bs-opt-title { font-size: 11px; font-weight: 600; color: var(--text); line-height: 1.3; }
-  .bs-opt-desc  { font-size: 10px; color: var(--text3); margin-top: 1px; line-height: 1.3; }
+  .bs-opt-title { font-size: 11px; font-weight: 600; color: white; line-height: 1.3; }
+  .bs-opt-desc  { font-size: 10px; color: rgba(255,255,255,.55); margin-top: 1px; line-height: 1.3; }
 
   .bs-opt-wide {
     grid-column: 1 / -1;
     display: flex; align-items: center; gap: 10px;
-    background: var(--surface2); border: 1px solid var(--border);
+    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
     border-radius: 12px; padding: 10px 12px;
     cursor: pointer; transition: all .18s;
   }
 
   .bs-opt-wide.sel {
-    background: linear-gradient(135deg,rgba(99,102,241,.1),rgba(139,92,246,.1));
-    border-color: rgba(99,102,241,.4);
+    background: rgba(255,255,255,.25);
+    border-color: rgba(255,255,255,.5);
   }
-
-  /* ── 生成ボタン ── */
-  .bs-gen-btn {
-    width: 100%; padding: 16px;
-    background: var(--grad-btn); color: white;
-    border: none; border-radius: 14px;
-    font-family: inherit; font-size: 16px; font-weight: 700;
-    cursor: pointer; letter-spacing: .3px;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    box-shadow: 0 6px 24px rgba(99,102,241,.4);
-    transition: all .18s; flex-shrink: 0;
-    margin: 0 14px 16px;
-  }
-
-  .bs-gen-btn:active { transform: scale(.97); }
 
   /* ── ルート情報（生成後） ── */
   .bs-stats-grid {
@@ -1208,38 +1217,60 @@ body {
   }
 
   .bs-stat {
-    background: var(--surface2); border: 1px solid var(--border);
+    background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
     border-radius: 12px; padding: 10px 8px; text-align: center;
   }
 
-  .bs-stat-val  { font-size: 22px; font-weight: 700; color: #6366f1; letter-spacing: -1px; line-height: 1; }
-  .bs-stat-unit { font-size: 9px; font-weight: 600; color: var(--text3); text-transform: uppercase; margin-top: 2px; }
-  .bs-stat-lbl  { font-size: 10px; color: var(--text3); margin-top: 3px; }
+  .bs-stat-val  { font-size: 22px; font-weight: 700; color: white; letter-spacing: -1px; line-height: 1; }
+  .bs-stat-unit { font-size: 9px; font-weight: 600; color: rgba(255,255,255,.55); text-transform: uppercase; margin-top: 2px; }
+  .bs-stat-lbl  { font-size: 10px; color: rgba(255,255,255,.55); margin-top: 3px; }
 
   /* ── エクスポートボタン ── */
   .bs-export-btn {
     width: 100%; padding: 13px;
-    background: linear-gradient(135deg,#6366f1,#8b5cf6);
-    color: white; border: none; border-radius: 12px;
+    background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.3);
+    color: white; border-radius: 12px;
     font-family: inherit; font-size: 13px; font-weight: 600;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center; gap: 8px;
-    box-shadow: 0 4px 12px rgba(99,102,241,.3);
     margin-bottom: 8px;
   }
 
   /* ── スタートバッジ ── */
   .bs-start-badge {
     display: none; align-items: center; gap: 6px;
-    padding: 8px 12px; background: white;
-    border: 1px solid rgba(99,102,241,.2); border-radius: 10px;
-    font-size: 12px; font-weight: 500; color: #6366f1;
+    padding: 8px 12px;
+    background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
+    border-radius: 10px; font-size: 12px; font-weight: 500; color: white;
     margin-top: 6px;
   }
 
   .bs-start-badge.show { display: flex; }
-  .bs-start-badge-text { flex: 1; line-height: 1.4; font-size: 11px; color: var(--text2); }
-  .bs-start-badge-clear { cursor: pointer; color: var(--text3); font-size: 14px; }
+  .bs-start-badge-text { flex: 1; line-height: 1.4; font-size: 11px; color: rgba(255,255,255,.8); }
+  .bs-start-badge-clear { cursor: pointer; color: rgba(255,255,255,.5); font-size: 14px; }
+
+  /* ── マップ上部中央：生成ボタン ── */
+  .bs-map-gen-btn {
+    position: fixed;
+    top: max(16px, env(safe-area-inset-top));
+    left: 50%; transform: translateX(-50%);
+    z-index: 450;
+    padding: 12px 24px;
+    background: linear-gradient(135deg,#6366f1,#8b5cf6);
+    color: white; border: none; border-radius: 50px;
+    font-family: inherit; font-size: 14px; font-weight: 700;
+    cursor: pointer; letter-spacing: .3px;
+    display: flex; align-items: center; gap: 7px;
+    box-shadow: 0 4px 20px rgba(99,102,241,.5);
+    transition: all .18s;
+    white-space: nowrap;
+  }
+
+  .bs-map-gen-btn:active { transform: translateX(-50%) scale(.95); }
+}
+
+/* デスクトップではマップ上ボタン非表示 */
+.bs-map-gen-btn { display: none; }
 }
 
 /* ── MOBILE スクロールヒント ─────────────────────────── */
@@ -1511,14 +1542,20 @@ body {
         </div>
       </div>
 
-      <!-- ペース設定 -->
+      <!-- ペース / 速度設定 -->
       <div class="card">
-        <div class="card-label" data-i18n="pace">ペース設定</div>
-        <div class="pace-row">
+        <div class="card-label" id="pace-card-label">ペース設定</div>
+        <!-- ランニング：分/km -->
+        <div id="pace-run-row" class="pace-row">
           <input type="number" id="pace-min" class="pace-input" value="6" min="3" max="20" oninput="updatePaceResult()">
           <span class="pace-sep">:</span>
           <input type="number" id="pace-sec" class="pace-input" value="00" min="0" max="59" oninput="updatePaceResult()">
-          <span class="pace-unit" data-i18n="pace_unit">分/km</span>
+          <span class="pace-unit">分/km</span>
+        </div>
+        <!-- サイクリング：時速km -->
+        <div id="pace-bike-row" class="pace-row" style="display:none">
+          <input type="number" id="bike-speed" class="pace-input" value="20" min="5" max="60" style="width:70px;font-size:22px" oninput="updatePaceResult()">
+          <span class="pace-unit">km/h</span>
         </div>
         <div class="pace-result">
           <span class="pace-result-label" data-i18n="est_time">目安タイム</span>
@@ -1680,6 +1717,27 @@ body {
       </div>
     </div>
 
+    <!-- ペース／速度設定 -->
+    <div class="bs-section">
+      <div class="bs-section-title" id="bs-pace-label">ペース設定</div>
+      <!-- ランニング：分/km -->
+      <div id="bs-run-row" class="bs-pace-row">
+        <input type="number" id="bs-pace-min" class="bs-pace-input" value="6" min="3" max="20" oninput="bsSyncPace()">
+        <span class="bs-pace-sep">:</span>
+        <input type="number" id="bs-pace-sec" class="bs-pace-input" value="00" min="0" max="59" oninput="bsSyncPace()">
+        <span class="bs-pace-unit">分/km</span>
+      </div>
+      <!-- サイクリング：時速 -->
+      <div id="bs-bike-row" class="bs-pace-row" style="display:none">
+        <input type="number" id="bs-bike-speed" class="bs-pace-input" style="width:64px;font-size:22px" value="20" min="5" max="60" oninput="bsSyncSpeed()">
+        <span class="bs-pace-unit">km/h</span>
+      </div>
+      <div class="bs-pace-result">
+        <span style="font-size:11px;color:var(--text3)">目安タイム</span>
+        <span id="bs-pace-val" style="font-size:20px;font-weight:700;color:white">—</span>
+      </div>
+    </div>
+
     <!-- ルートオプション -->
     <div class="bs-section">
       <div class="bs-section-title" data-i18n="route_options">ルートオプション</div>
@@ -1741,13 +1799,13 @@ body {
 
   </div><!-- /bs-scroll -->
 
-  <!-- 生成ボタン（シート下部固定） -->
-  <button class="bs-gen-btn" id="bs-gen-btn" onclick="generateRoute()">
-    <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-    <span data-i18n="generate">ルートを生成</span>
-  </button>
-
 </div><!-- /bottom-sheet -->
+
+<!-- ── マップ上部中央：生成ボタン（モバイル専用） ──── -->
+<button class="bs-map-gen-btn" id="bs-map-gen-btn" onclick="generateRoute()">
+  <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+  ルートを生成
+</button>
 
 <!-- ── PWA インストールバナー ──────────────────────── -->
 <div class="pwa-install-banner" id="pwa-install-banner">
@@ -1964,6 +2022,23 @@ function setMode(mode) {
     fillColor: mode === 'run' ? '#00ff88' : '#4da6ff',
     fillOpacity: 1, strokeColor: '#ffffff', strokeWeight: 3,
   });
+
+  // ペース／速度カード切り替え
+  const isRun = mode === 'run';
+  const runRow  = document.getElementById('pace-run-row');
+  const bikeRow = document.getElementById('pace-bike-row');
+  const label   = document.getElementById('pace-card-label');
+  if (runRow)  runRow.style.display  = isRun ? '' : 'none';
+  if (bikeRow) bikeRow.style.display = isRun ? 'none' : '';
+  if (label)   label.textContent     = isRun ? 'ペース設定' : '平均速度設定';
+
+  // ボトムシート側も切り替え
+  const bsBikeRow = document.getElementById('bs-bike-row');
+  const bsRunRow  = document.getElementById('bs-run-row');
+  if (bsRunRow)  bsRunRow.style.display  = isRun ? '' : 'none';
+  if (bsBikeRow) bsBikeRow.style.display = isRun ? 'none' : '';
+
+  updatePaceResult();
 }
 
 function setDist(km) { document.getElementById('dist-input').value = km; updatePaceResult(); }
@@ -2296,10 +2371,27 @@ function updateTurnsPresetHighlight() {
 // ─── PACE CALCULATOR ──────────────────────
 function updatePaceResult() {
   const distKm = parseFloat(document.getElementById('dist-input').value) || 0;
+  const el = document.getElementById('pace-result-val');
+
+  if (currentMode === 'bike') {
+    // 自転車：時速から所要時間を計算
+    const speedKmh = parseFloat(document.getElementById('bike-speed')?.value) || 20;
+    if (distKm > 0 && speedKmh > 0) {
+      const totalMin = (distKm / speedKmh) * 60;
+      const h = Math.floor(totalMin / 60);
+      const m = Math.floor(totalMin % 60);
+      el.textContent = h > 0 ? `${h}時間${m}分` : `${m}分`;
+      if (currentRoute) document.getElementById('s-time').textContent = Math.round(totalMin);
+    } else {
+      el.textContent = '—';
+    }
+    return;
+  }
+
+  // ランニング：ペースから所要時間を計算
   const pMin   = parseInt(document.getElementById('pace-min').value)  || 0;
   const pSec   = parseInt(document.getElementById('pace-sec').value)  || 0;
   const paceTotalSec = pMin * 60 + pSec;
-  const el = document.getElementById('pace-result-val');
   if (distKm > 0 && paceTotalSec > 0) {
     const totalSec = distKm * paceTotalSec;
     const h = Math.floor(totalSec / 3600);
@@ -3123,6 +3215,52 @@ function t(key) {
       if (el) observer.observe(el, { childList: true, characterData: true, subtree: true });
     });
   });
+
+  // ── ペース同期（ボトムシート→既存） ────────────────
+  window.bsSyncPace = function() {
+    const m = document.getElementById('bs-pace-min')?.value || '6';
+    const s = document.getElementById('bs-pace-sec')?.value || '00';
+    const pm = document.getElementById('pace-min');
+    const ps = document.getElementById('pace-sec');
+    if (pm) pm.value = m;
+    if (ps) ps.value = s;
+    updatePaceResult();
+    // ボトムシート側の表示も更新
+    const el = document.getElementById('bs-pace-val');
+    const orig = document.getElementById('pace-result-val');
+    if (el && orig) el.textContent = orig.textContent;
+  };
+
+  window.bsSyncSpeed = function() {
+    const spd = document.getElementById('bs-bike-speed')?.value || '20';
+    const orig = document.getElementById('bike-speed');
+    if (orig) orig.value = spd;
+    updatePaceResult();
+    const el = document.getElementById('bs-pace-val');
+    const origEl = document.getElementById('pace-result-val');
+    if (el && origEl) el.textContent = origEl.textContent;
+  };
+
+  // ── モード切替でペースラベルも更新 ────────────────
+  const _origBsSetMode = window.bsSetMode;
+  window.bsSetMode = function(mode) {
+    _origBsSetMode && _origBsSetMode(mode);
+    const label = document.getElementById('bs-pace-label');
+    if (label) label.textContent = mode === 'run' ? 'ペース設定' : '平均速度設定';
+    updatePaceResult();
+    const el = document.getElementById('bs-pace-val');
+    const orig = document.getElementById('pace-result-val');
+    if (el && orig) el.textContent = orig.textContent;
+  };
+
+  // ── generateRoute後にペース値をボトムシートに反映 ──
+  const _origGenBs = window.generateRoute;
+  window.generateRoute = async function() {
+    if (typeof _origGenBs === 'function') await _origGenBs.apply(this, arguments);
+    const el = document.getElementById('bs-pace-val');
+    const orig = document.getElementById('pace-result-val');
+    if (el && orig) el.textContent = orig.textContent;
+  };
 
   // ── generateRoute の後処理をフック ───────────────────
   const _origGenerate = window.generateRoute;
