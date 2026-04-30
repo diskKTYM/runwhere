@@ -614,6 +614,16 @@ body {
 
 .elev-bar canvas { position:absolute; bottom:0; left:0; width:100%; height:90px; }
 
+.elev-label {
+  position: absolute;
+  top: 8px; left: 10px;
+  font-size: 10px; font-weight: 600;
+  color: #9ca3af;
+  letter-spacing: .5px;
+  z-index: 6;
+  pointer-events: none;
+}
+
 /* ── PREVIEW PLAYER ──────────────────────────────────── */
 .preview-bar {
   position:absolute; bottom:0; left:0; right:0;
@@ -965,7 +975,7 @@ body {
 
   /* ── 通知 ── */
   .notif {
-    bottom: max(340px, calc(300px + env(safe-area-inset-bottom)));
+    bottom: max(164px, calc(148px + env(safe-area-inset-bottom)));
     left: 12px; right: 12px;
     max-width: 100%;
   }
@@ -1009,7 +1019,7 @@ body {
   }
 
   /* ── 3段階の高さ ── */
-  .bottom-sheet.peek   { transform: translateY(calc(100% - 88px)); }
+  .bottom-sheet.peek   { transform: translateY(calc(100% - 148px)); }
   .bottom-sheet.half   { transform: translateY(calc(100% - 58dvh)); }
   .bottom-sheet.full   { transform: translateY(0); }
 
@@ -1627,6 +1637,7 @@ body {
       </div>
 
       <div class="elev-bar" id="elev-bar">
+        <span class="elev-label">高低差</span>
         <canvas id="elev-canvas"></canvas>
       </div>
 
