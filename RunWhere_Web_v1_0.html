@@ -1046,11 +1046,41 @@ body {
     border-radius: 20px 20px 0 0;
   }
 
-  /* ハンドルバーだけ中央揃え */
   .bs-handle {
     width: 36px; height: 4px;
     background: rgba(255,255,255,.5); border-radius: 2px;
     align-self: center;
+  }
+
+  /* ── ステージドット ── */
+  .bs-dots {
+    display: flex; align-items: center; justify-content: center;
+    gap: 5px; padding-bottom: 4px;
+  }
+
+  .bs-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: rgba(255,255,255,.35);
+    transition: all .3s cubic-bezier(.34,1.56,.64,1);
+  }
+
+  .bs-dot.active {
+    width: 16px; border-radius: 3px;
+    background: rgba(255,255,255,.95);
+  }
+
+  /* ── 初回バウンスアニメーション ── */
+  @keyframes bs-bounce {
+    0%   { transform: translateY(calc(100% - 148px)); }
+    30%  { transform: translateY(calc(100% - 200px)); }
+    55%  { transform: translateY(calc(100% - 140px)); }
+    75%  { transform: translateY(calc(100% - 165px)); }
+    90%  { transform: translateY(calc(100% - 145px)); }
+    100% { transform: translateY(calc(100% - 148px)); }
+  }
+
+  .bottom-sheet.bounce {
+    animation: bs-bounce 1.0s cubic-bezier(.36,.07,.19,.97) forwards;
   }
 
   /* ── ピーク時：検索バー + モードトグル ── */
@@ -1702,6 +1732,11 @@ body {
   <!-- ハンドル -->
   <div class="bs-handle-wrap" id="bs-handle">
     <div class="bs-handle"></div>
+    <div class="bs-dots">
+      <div class="bs-dot active" id="bs-dot-0"></div>
+      <div class="bs-dot" id="bs-dot-1"></div>
+      <div class="bs-dot" id="bs-dot-2"></div>
+    </div>
     <!-- ピーク時：検索バー＋モードトグル -->
     <div class="bs-peek-row">
       <div class="bs-search-mini" id="bs-search-mini" onclick="bsSetState('half')">
@@ -3134,19 +3169,19 @@ function t(key) {
     sheet.classList.add(state);
     overlay.classList.toggle('show', state === 'full');
 
-    // ── ボタンをボトムシートの状態に合わせて移動 ──
+    // ── ドット更新 ──────────────────────────────
+    const stateIndex = { peek: 0, half: 1, full: 2 };
+    const idx = stateIndex[state] ?? 0;
+    document.querySelectorAll('.bs-dot').forEach((dot, i) => {
+      dot.classList.toggle('active', i === idx);
+    });
+
+    // ── マップ上ボタン制御 ──────────────────────
     if (genBtn) {
       if (state === 'peek') {
-        // peek: シート88px → ボタンはその上
-        genBtn.style.bottom = 'max(96px, calc(env(safe-area-inset-bottom) + 96px))';
         genBtn.style.opacity = '1';
         genBtn.style.pointerEvents = 'auto';
-      } else if (state === 'half') {
-        // half: シートが58dvh → ボタンを非表示
-        genBtn.style.opacity = '0';
-        genBtn.style.pointerEvents = 'none';
       } else {
-        // full: 全開 → ボタンを非表示
         genBtn.style.opacity = '0';
         genBtn.style.pointerEvents = 'none';
       }
@@ -3489,6 +3524,20 @@ function t(key) {
       const v = parseInt(origDist.value) || 5;
       bsUpdateDist(v);
       document.getElementById('bs-dist-slider').value = v;
+    }
+
+    // ── 初回バウンス（初めての訪問時のみ） ──
+    const sheet = document.getElementById('bottom-sheet');
+    if (!sheet) return;
+    const bounced = sessionStorage.getItem('bs_bounced');
+    if (!bounced) {
+      setTimeout(() => {
+        sheet.classList.add('bounce');
+        sheet.addEventListener('animationend', () => {
+          sheet.classList.remove('bounce');
+        }, { once: true });
+        sessionStorage.setItem('bs_bounced', '1');
+      }, 1200); // 地図ロード後に実行
     }
   });
 
