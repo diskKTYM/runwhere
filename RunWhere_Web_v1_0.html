@@ -1729,6 +1729,28 @@ body {
       </div>
     </div>
 
+    <!-- 距離設定 -->
+    <div class="bs-section">
+      <div class="bs-section-title" data-i18n="distance">距離設定</div>
+      <div class="bs-dist-row">
+        <div>
+          <div class="bs-dist-num" id="bs-dist-num">5</div>
+          <div class="bs-dist-unit">KM</div>
+        </div>
+        <div class="bs-dist-right">
+          <input type="range" class="bs-dist-slider" id="bs-dist-slider"
+            min="1" max="42" value="5" oninput="bsUpdateDist(this.value)">
+          <div class="bs-dist-presets">
+            <div class="bs-dist-preset" onclick="bsSetDist(3)">3K</div>
+            <div class="bs-dist-preset active" onclick="bsSetDist(5)">5K</div>
+            <div class="bs-dist-preset" onclick="bsSetDist(10)">10K</div>
+            <div class="bs-dist-preset" onclick="bsSetDist(21)">HM</div>
+            <div class="bs-dist-preset" onclick="bsSetDist(42)">FM</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ペース / 速度設定 -->
     <div class="bs-section">
       <div class="bs-section-title" id="bs-pace-label">ペース設定</div>
@@ -1776,28 +1798,6 @@ body {
           </div>
         </div>
         <input type="hidden" id="bs-bike-speed" value="20">
-      </div>
-    </div>
-
-    <!-- 距離設定 -->
-    <div class="bs-section">
-      <div class="bs-section-title" data-i18n="distance">距離設定</div>
-      <div class="bs-dist-row">
-        <div>
-          <div class="bs-dist-num" id="bs-dist-num">5</div>
-          <div class="bs-dist-unit">KM</div>
-        </div>
-        <div class="bs-dist-right">
-          <input type="range" class="bs-dist-slider" id="bs-dist-slider"
-            min="1" max="42" value="5" oninput="bsUpdateDist(this.value)">
-          <div class="bs-dist-presets">
-            <div class="bs-dist-preset" onclick="bsSetDist(3)">3K</div>
-            <div class="bs-dist-preset active" onclick="bsSetDist(5)">5K</div>
-            <div class="bs-dist-preset" onclick="bsSetDist(10)">10K</div>
-            <div class="bs-dist-preset" onclick="bsSetDist(21)">HM</div>
-            <div class="bs-dist-preset" onclick="bsSetDist(42)">FM</div>
-          </div>
-        </div>
       </div>
     </div>
 
