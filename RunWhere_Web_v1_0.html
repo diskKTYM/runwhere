@@ -605,6 +605,9 @@ body {
 .map-ctrl-preview:hover { background: linear-gradient(135deg,#6366f1,#8b5cf6) !important; color: white !important; border-color: transparent !important; }
 .map-ctrl-preview.playing { background: linear-gradient(135deg,#6366f1,#8b5cf6); color: white; border-color: transparent; }
 
+.map-ctrl-history { color: var(--text2); }
+.map-ctrl-history:hover { background: var(--surface2); }
+
 /* ── ELEVATION ───────────────────────────────────────── */
 .elev-bar {
   position:absolute; bottom:0; left:0; right:0; height:100px;
@@ -955,7 +958,15 @@ body {
 
   .map-ctrl { width: 42px; height: 42px; font-size: 15px; border-radius: 12px; }
 
-  /* ── 標高グラフ：上部に表示 ── */
+  /* ── 履歴パネル：モバイルでは全幅・ボトムシート上に ── */
+  .history-panel {
+    width: 100%;
+    z-index: 550;
+  }
+
+  .map-ctrl-history svg {
+    display: block;
+  }
   .elev-bar {
     top: max(0px, env(safe-area-inset-top));
     bottom: auto;
@@ -1625,6 +1636,9 @@ body {
         <div class="map-ctrl" title="縮小" onclick="gmap.setZoom(gmap.getZoom()-1)">－</div>
         <div class="map-ctrl" title="現在地" onclick="centerOnUser()">📍</div>
         <div class="map-ctrl map-ctrl-preview" id="map-preview-btn" title="プレビュー" onclick="togglePreview()">▶</div>
+        <div class="map-ctrl map-ctrl-history" id="map-history-btn" title="生成履歴" onclick="toggleHistory()">
+          <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        </div>
       </div>
 
       <div class="elev-bar" id="elev-bar">
