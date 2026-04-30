@@ -1,0 +1,2276 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>RunWhere 2.0 — Run Tourism</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f172a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="RunWhere">
+<meta name="description" content="その街を走って観光する。AI が生成するRun Tourismアプリ。">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+
+<!-- Google Maps API -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCQWa8KLzLVpzqFoKp5g52DtMf5cVMg7Nc&libraries=places,geometry&callback=initMap" async defer></script>
+
+<style>
+/* ══════════════════════════════════════════════════════════
+   TOKENS
+══════════════════════════════════════════════════════════ */
+:root {
+  --ink:      #0f172a;
+  --ink2:     #334155;
+  --ink3:     #64748b;
+  --paper:    #f8fafc;
+  --surface:  #ffffff;
+  --border:   rgba(15,23,42,.1);
+  --border2:  rgba(15,23,42,.06);
+
+  --gold:     #f59e0b;
+  --gold2:    #fbbf24;
+  --teal:     #0d9488;
+  --teal2:    #14b8a6;
+  --coral:    #f43f5e;
+
+  --grad-hero: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f2942 100%);
+  --grad-gold: linear-gradient(135deg, #f59e0b, #fbbf24);
+  --grad-teal: linear-gradient(135deg, #0d9488, #14b8a6);
+
+  --r-sm: 10px;
+  --r-md: 16px;
+  --r-lg: 24px;
+  --r-xl: 32px;
+
+  --shadow-sm: 0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+  --shadow-md: 0 4px 16px rgba(0,0,0,.1), 0 2px 4px rgba(0,0,0,.06);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,.15), 0 4px 12px rgba(0,0,0,.08);
+  --shadow-xl: 0 24px 64px rgba(0,0,0,.2);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  height: 100dvh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ══════════════════════════════════════════════════════════
+   MAP (全画面)
+══════════════════════════════════════════════════════════ */
+#map {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+/* ══════════════════════════════════════════════════════════
+   TOP BAR
+══════════════════════════════════════════════════════════ */
+.top-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: max(14px, calc(env(safe-area-inset-top) + 8px)) 16px 14px;
+  background: linear-gradient(to bottom, rgba(15,23,42,.85) 0%, transparent 100%);
+  backdrop-filter: blur(0px);
+}
+
+.logo-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-icon {
+  width: 34px; height: 34px;
+  background: var(--grad-gold);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 4px 12px rgba(245,158,11,.4);
+}
+
+.logo-text {
+  font-family: 'DM Serif Display', serif;
+  font-size: 20px;
+  color: white;
+  letter-spacing: -.3px;
+}
+
+.logo-badge {
+  background: var(--grad-gold);
+  color: var(--ink);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .5px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  margin-left: 2px;
+}
+
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lang-btn {
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.2);
+  color: white;
+  font-size: 11px; font-weight: 700;
+  font-family: inherit;
+  padding: 6px 4px;
+  border-radius: 8px;
+  cursor: pointer;
+  outline: none;
+}
+
+.lang-btn option { background: #1e293b; }
+
+.history-btn {
+  width: 36px; height: 36px;
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  color: white; font-size: 16px;
+  transition: all .18s;
+}
+
+.history-btn:hover { background: rgba(255,255,255,.25); }
+
+/* ══════════════════════════════════════════════════════════
+   MAP CONTROLS
+══════════════════════════════════════════════════════════ */
+.map-ctrl-group {
+  position: fixed;
+  right: 14px;
+  top: max(80px, calc(env(safe-area-inset-top) + 72px));
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.map-ctrl {
+  width: 40px; height: 40px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--ink2);
+  box-shadow: var(--shadow-sm);
+  transition: all .18s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.map-ctrl:active { transform: scale(.93); }
+.map-ctrl.preview-active {
+  background: var(--grad-teal);
+  color: white;
+  border-color: transparent;
+}
+
+/* ══════════════════════════════════════════════════════════
+   ELEVATION BAR
+══════════════════════════════════════════════════════════ */
+.elev-bar {
+  position: fixed;
+  top: max(0px, env(safe-area-inset-top));
+  left: 0; right: 0;
+  height: 100px;
+  pointer-events: none;
+  z-index: 50;
+  display: none;
+}
+
+.elev-bar canvas {
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 100%; height: 90px;
+}
+
+.elev-label {
+  position: absolute;
+  top: 8px; left: 12px;
+  font-size: 10px; font-weight: 600;
+  color: rgba(255,255,255,.7);
+  letter-spacing: .5px;
+  z-index: 6;
+}
+
+/* ══════════════════════════════════════════════════════════
+   BOTTOM SHEET
+══════════════════════════════════════════════════════════ */
+.bottom-sheet {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  max-height: 92dvh;
+  background: var(--surface);
+  border-radius: 24px 24px 0 0;
+  box-shadow: var(--shadow-xl);
+  transition: transform .4s cubic-bezier(.32,1,.5,1);
+  will-change: transform;
+}
+
+.bottom-sheet.peek { transform: translateY(calc(100% - 160px)); }
+.bottom-sheet.half { transform: translateY(calc(100% - 60dvh)); }
+.bottom-sheet.full { transform: translateY(0); }
+
+/* ── ヘッダー（グラデーション） ── */
+.bs-header {
+  background: var(--grad-hero);
+  border-radius: 24px 24px 0 0;
+  padding: 10px 0 0;
+  flex-shrink: 0;
+  cursor: grab;
+}
+
+.bs-handle-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 6px;
+}
+
+.bs-handle {
+  width: 36px; height: 4px;
+  background: rgba(255,255,255,.3);
+  border-radius: 2px;
+}
+
+.bs-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding-bottom: 6px;
+}
+
+.bs-dot {
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.25);
+  transition: all .3s cubic-bezier(.34,1.56,.64,1);
+}
+
+.bs-dot.active {
+  width: 16px; border-radius: 3px;
+  background: var(--gold);
+}
+
+/* ── 検索行 ── */
+.bs-search-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px 10px;
+}
+
+.bs-search-box {
+  flex: 1;
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.bs-search-box svg {
+  width: 15px; height: 15px;
+  stroke: rgba(255,255,255,.6); fill: none;
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  flex-shrink: 0;
+}
+
+.bs-search-text {
+  font-size: 13px;
+  color: rgba(255,255,255,.7);
+  flex: 1;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.bs-mode-toggle {
+  display: flex;
+  background: rgba(255,255,255,.1);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 10px;
+  padding: 3px; gap: 2px;
+  flex-shrink: 0;
+}
+
+.bs-mode-btn {
+  width: 32px; height: 32px;
+  border: none; border-radius: 7px;
+  background: transparent;
+  cursor: pointer; font-size: 15px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .18s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bs-mode-btn.active {
+  background: rgba(255,255,255,.25);
+  box-shadow: 0 2px 6px rgba(0,0,0,.2);
+}
+
+.lang-select-mini {
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2);
+  color: white;
+  font-size: 10px; font-weight: 700;
+  font-family: inherit;
+  padding: 6px 4px;
+  border-radius: 8px;
+  cursor: pointer;
+  outline: none;
+  flex-shrink: 0;
+}
+
+.lang-select-mini option { background: #1e293b; }
+
+/* ── 生成ボタン行 ── */
+.bs-action-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px 14px;
+}
+
+.bs-gen-btn {
+  flex: 1;
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 12px 16px;
+  background: var(--grad-gold);
+  color: var(--ink);
+  border: none; border-radius: 12px;
+  font-family: inherit; font-size: 14px; font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(245,158,11,.4);
+  transition: all .18s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bs-gen-btn:active { transform: scale(.97); }
+
+.bs-clear-btn {
+  width: 44px; height: 44px;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 18px;
+  transition: all .18s;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bs-clear-btn:active { transform: scale(.93); }
+
+/* ── スクロールエリア ── */
+.bs-scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 0 16px;
+  padding-bottom: max(24px, env(safe-area-inset-bottom));
+  -webkit-overflow-scrolling: touch;
+}
+
+.bs-scroll::-webkit-scrollbar { display: none; }
+
+/* ── セクション ── */
+.bs-section { margin-bottom: 20px; }
+
+.bs-section-title {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 1.2px;
+  color: var(--ink3);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+/* ── 検索入力（展開時） ── */
+.bs-search-full {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--surface);
+  border: 1.5px solid var(--border2);
+  border-radius: 12px; padding: 0 12px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 8px;
+}
+
+.bs-search-full svg {
+  width: 15px; height: 15px;
+  stroke: var(--ink3); fill: none;
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  flex-shrink: 0;
+}
+
+.bs-search-full input {
+  flex: 1; border: none; outline: none;
+  background: transparent;
+  font-size: 14px; font-family: inherit;
+  color: var(--ink); padding: 12px 0;
+}
+
+.bs-search-full input::placeholder { color: var(--ink3); }
+
+/* GPS */
+.bs-gps-btn {
+  width: 100%; padding: 10px;
+  background: rgba(13,148,136,.06);
+  border: 1px dashed rgba(13,148,136,.35);
+  border-radius: 10px;
+  cursor: pointer; font-family: inherit;
+  font-size: 13px; font-weight: 500;
+  color: var(--teal);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  margin-bottom: 6px;
+  transition: all .18s;
+}
+
+.bs-gps-btn:active { background: rgba(13,148,136,.12); }
+
+/* スタートバッジ */
+.bs-start-badge {
+  display: none; align-items: center; gap: 6px;
+  padding: 8px 12px;
+  background: rgba(13,148,136,.06);
+  border: 1px solid rgba(13,148,136,.2);
+  border-radius: 10px;
+  font-size: 11px; color: var(--teal); margin-top: 6px;
+}
+
+.bs-start-badge.show { display: flex; }
+.bs-start-badge-text { flex: 1; color: var(--ink2); font-size: 11px; line-height: 1.4; }
+.bs-start-badge-clear { cursor: pointer; color: var(--ink3); }
+
+/* ══════════════════════════════════════════════════════════
+   スポット数設定（Run Tourism の核心）
+══════════════════════════════════════════════════════════ */
+.spots-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+.spot-btn {
+  padding: 10px 4px;
+  background: var(--paper);
+  border: 1.5px solid var(--border2);
+  border-radius: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .18s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.spot-btn.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: white;
+}
+
+.spot-btn-num {
+  font-size: 22px; font-weight: 700;
+  display: block; line-height: 1;
+  font-family: 'DM Serif Display', serif;
+  color: inherit;
+}
+
+.spot-btn-label {
+  font-size: 9px; font-weight: 600;
+  letter-spacing: .5px;
+  color: var(--ink3);
+  display: block; margin-top: 2px;
+}
+
+.spot-btn.active .spot-btn-label { color: rgba(255,255,255,.7); }
+
+/* ══════════════════════════════════════════════════════════
+   スポットタイプ選択
+══════════════════════════════════════════════════════════ */
+.spot-type-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.spot-type-card {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px;
+  background: var(--paper);
+  border: 1.5px solid var(--border2);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all .18s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.spot-type-card.active {
+  background: rgba(15,23,42,.04);
+  border-color: var(--ink);
+}
+
+.spot-type-icon { font-size: 20px; flex-shrink: 0; }
+.spot-type-name { font-size: 12px; font-weight: 600; color: var(--ink); }
+.spot-type-desc { font-size: 10px; color: var(--ink3); line-height: 1.3; }
+
+/* ══════════════════════════════════════════════════════════
+   距離スライダー
+══════════════════════════════════════════════════════════ */
+.dist-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--paper);
+  border: 1.5px solid var(--border2);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.dist-num-wrap { text-align: center; }
+
+.dist-num {
+  font-size: 36px; font-weight: 700;
+  color: var(--ink);
+  font-family: 'DM Serif Display', serif;
+  letter-spacing: -1px; line-height: 1;
+  display: block;
+}
+
+.dist-unit {
+  font-size: 11px; font-weight: 600;
+  color: var(--ink3); text-transform: uppercase;
+  letter-spacing: .5px;
+}
+
+.dist-right { flex: 1; }
+
+.dist-slider {
+  width: 100%; height: 4px;
+  -webkit-appearance: none; appearance: none;
+  background: linear-gradient(to right, var(--ink) var(--pct,20%), #e2e8f0 var(--pct,20%));
+  border-radius: 2px; outline: none;
+  cursor: pointer; margin-bottom: 8px;
+}
+
+.dist-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 20px; height: 20px;
+  background: white; border: 3px solid var(--ink);
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0,0,0,.15);
+  cursor: pointer;
+}
+
+.dist-presets { display: flex; gap: 4px; }
+
+.dist-preset {
+  flex: 1; padding: 5px 0; text-align: center;
+  background: white; border: 1px solid var(--border2);
+  border-radius: 7px; font-size: 10px; font-weight: 600;
+  color: var(--ink2); cursor: pointer; transition: all .15s;
+}
+
+.dist-preset.active {
+  background: var(--ink); color: white; border-color: var(--ink);
+}
+
+/* ══════════════════════════════════════════════════════════
+   ペース設定
+══════════════════════════════════════════════════════════ */
+.pace-row {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--paper); border: 1.5px solid var(--border2);
+  border-radius: 14px; padding: 12px 14px;
+}
+
+/* ══════════════════════════════════════════════════════════
+   ルートオプション
+══════════════════════════════════════════════════════════ */
+.opt-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+}
+
+.opt-card {
+  padding: 10px 10px 8px;
+  background: var(--paper);
+  border: 1.5px solid var(--border2);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all .18s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.opt-card.active {
+  background: rgba(15,23,42,.04);
+  border-color: var(--ink);
+}
+
+.opt-icon { font-size: 18px; margin-bottom: 4px; }
+.opt-name { font-size: 11px; font-weight: 600; color: var(--ink); line-height: 1.3; }
+.opt-desc { font-size: 10px; color: var(--ink3); margin-top: 1px; line-height: 1.3; }
+
+/* ══════════════════════════════════════════════════════════
+   ルート情報・AIコース解説
+══════════════════════════════════════════════════════════ */
+.route-info-card {
+  background: var(--ink);
+  border-radius: 16px;
+  padding: 16px;
+  margin-bottom: 10px;
+  color: white;
+}
+
+.route-name {
+  font-family: 'DM Serif Display', serif;
+  font-size: 18px; font-weight: 400;
+  letter-spacing: -.3px;
+  margin-bottom: 4px;
+  color: white;
+}
+
+.route-desc {
+  font-size: 11px; color: rgba(255,255,255,.65);
+  line-height: 1.7; margin-bottom: 12px;
+}
+
+.route-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 8px; margin-bottom: 12px;
+}
+
+.route-stat {
+  text-align: center;
+  padding: 8px;
+  background: rgba(255,255,255,.08);
+  border-radius: 10px;
+}
+
+.route-stat-val {
+  font-size: 20px; font-weight: 700;
+  color: var(--gold);
+  font-family: 'DM Serif Display', serif;
+  letter-spacing: -1px;
+  display: block; line-height: 1;
+}
+
+.route-stat-unit {
+  font-size: 8px; font-weight: 600;
+  color: rgba(255,255,255,.4);
+  text-transform: uppercase; letter-spacing: .5px;
+}
+
+.route-stat-lbl {
+  font-size: 9px; color: rgba(255,255,255,.5); margin-top: 2px;
+}
+
+/* 経由スポットタグ */
+.spot-tags {
+  display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 12px;
+}
+
+.spot-tag {
+  display: flex; align-items: center; gap: 4px;
+  padding: 4px 8px;
+  background: rgba(255,255,255,.1);
+  border-radius: 20px;
+  font-size: 10px; color: rgba(255,255,255,.8);
+  font-weight: 500;
+}
+
+/* エクスポート */
+.export-row {
+  display: flex; gap: 8px;
+}
+
+.export-btn {
+  flex: 1; padding: 10px;
+  background: rgba(255,255,255,.12);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 10px;
+  color: white; font-family: inherit; font-size: 11px; font-weight: 600;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  transition: all .18s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.export-btn:active { background: rgba(255,255,255,.2); }
+
+.export-btn.primary {
+  background: var(--grad-gold);
+  color: var(--ink);
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(245,158,11,.3);
+}
+
+/* シェア・QR */
+.share-card {
+  background: var(--paper);
+  border: 1.5px solid var(--border2);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 10px;
+}
+
+.share-url {
+  font-size: 11px; color: var(--ink2);
+  background: white; border: 1px solid var(--border2);
+  border-radius: 8px; padding: 8px 10px;
+  word-break: break-all; margin-bottom: 10px;
+  line-height: 1.5;
+}
+
+.share-btns { display: flex; gap: 6px; }
+
+.share-btn {
+  flex: 1; padding: 9px;
+  background: var(--ink); color: white;
+  border: none; border-radius: 10px;
+  font-family: inherit; font-size: 11px; font-weight: 600;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center; gap: 5px;
+  transition: all .18s;
+}
+
+.share-btn.secondary {
+  background: var(--paper);
+  color: var(--ink);
+  border: 1.5px solid var(--border2);
+}
+
+/* QR */
+#qr-canvas {
+  display: block; margin: 10px auto 0;
+  border-radius: 8px;
+}
+
+/* ══════════════════════════════════════════════════════════
+   履歴パネル
+══════════════════════════════════════════════════════════ */
+.history-panel {
+  position: fixed; top: 0; right: 0; bottom: 0;
+  width: 100%; z-index: 500;
+  background: var(--surface);
+  transform: translateX(100%);
+  transition: transform .35s cubic-bezier(.4,0,.2,1);
+  display: flex; flex-direction: column;
+  box-shadow: var(--shadow-xl);
+}
+
+.history-panel.open { transform: translateX(0); }
+
+.history-header {
+  padding: max(20px, calc(env(safe-area-inset-top) + 12px)) 20px 16px;
+  background: var(--grad-hero);
+  display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+}
+
+.history-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 20px; color: white; flex: 1;
+}
+
+.history-close {
+  width: 32px; height: 32px;
+  background: rgba(255,255,255,.15);
+  border: 1px solid rgba(255,255,255,.2);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: white; font-size: 14px;
+}
+
+.history-list {
+  flex: 1; overflow-y: auto; padding: 12px 16px;
+}
+
+.hist-item {
+  padding: 12px 14px;
+  background: var(--paper);
+  border: 1.5px solid var(--border2);
+  border-radius: 14px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all .18s;
+}
+
+.hist-item:hover { border-color: var(--ink); }
+
+.hist-title {
+  font-size: 13px; font-weight: 600; color: var(--ink);
+  margin-bottom: 4px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+.hist-meta { font-size: 11px; color: var(--ink3); }
+
+.hist-actions {
+  display: flex; gap: 6px; margin-top: 8px;
+}
+
+.hist-action-btn {
+  padding: 4px 10px;
+  background: white;
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  font-size: 10px; font-weight: 600; color: var(--ink2);
+  cursor: pointer; font-family: inherit;
+  transition: all .15s;
+}
+
+.hist-action-btn:hover { background: var(--ink); color: white; border-color: var(--ink); }
+
+/* ══════════════════════════════════════════════════════════
+   NOTIFICATION
+══════════════════════════════════════════════════════════ */
+.notif {
+  position: fixed;
+  bottom: max(180px, calc(env(safe-area-inset-bottom) + 170px));
+  left: 16px; right: 16px;
+  z-index: 600;
+  background: var(--ink);
+  color: white;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 13px; font-weight: 500;
+  box-shadow: var(--shadow-lg);
+  opacity: 0; transform: translateY(8px);
+  transition: all .25s;
+  pointer-events: none;
+  text-align: center;
+}
+
+.notif.show { opacity: 1; transform: translateY(0); }
+.notif.success { background: var(--teal); }
+.notif.error   { background: var(--coral); }
+
+/* ══════════════════════════════════════════════════════════
+   BOUNCE ANIMATION
+══════════════════════════════════════════════════════════ */
+@keyframes bs-bounce {
+  0%   { transform: translateY(calc(100% - 160px)); }
+  30%  { transform: translateY(calc(100% - 210px)); }
+  55%  { transform: translateY(calc(100% - 154px)); }
+  75%  { transform: translateY(calc(100% - 172px)); }
+  90%  { transform: translateY(calc(100% - 157px)); }
+  100% { transform: translateY(calc(100% - 160px)); }
+}
+
+.bottom-sheet.bounce {
+  animation: bs-bounce 1.0s cubic-bezier(.36,.07,.19,.97) forwards;
+}
+
+/* ══════════════════════════════════════════════════════════
+   AI GENERATING INDICATOR
+══════════════════════════════════════════════════════════ */
+.ai-generating {
+  display: flex; align-items: center; gap: 8px;
+  padding: 12px 14px;
+  background: rgba(245,158,11,.06);
+  border: 1px solid rgba(245,158,11,.2);
+  border-radius: 12px;
+  font-size: 12px; color: var(--gold);
+  font-weight: 500; margin-bottom: 10px;
+}
+
+@keyframes pulse { 0%,100% { opacity: .5; } 50% { opacity: 1; } }
+.ai-pulse { animation: pulse 1.2s ease-in-out infinite; }
+</style>
+</head>
+<body>
+
+<!-- ── MAP ─────────────────────────────────────────────── -->
+<div id="map"></div>
+
+<!-- ── ELEVATION BAR ────────────────────────────────────── -->
+<div class="elev-bar" id="elev-bar">
+  <span class="elev-label">高低差</span>
+  <canvas id="elev-canvas"></canvas>
+</div>
+
+<!-- ── TOP BAR ──────────────────────────────────────────── -->
+<div class="top-bar">
+  <div class="logo-wrap">
+    <img src="icon-192.png" alt="RunWhere" style="width:34px;height:34px;border-radius:10px;object-fit:cover;display:block;">
+    <span class="logo-text">RunWhere</span>
+    <span class="logo-badge">2.0</span>
+  </div>
+  <div class="top-actions">
+    <select class="lang-btn" id="lang-select" onchange="setLang(this.value)">
+      <option value="ja">JA</option>
+      <option value="en">EN</option>
+      <option value="zh">ZH</option>
+      <option value="ko">KO</option>
+    </select>
+    <div class="history-btn" onclick="toggleHistory()">🕐</div>
+  </div>
+</div>
+
+<!-- ── MAP CONTROLS ─────────────────────────────────────── -->
+<div class="map-ctrl-group">
+  <div class="map-ctrl" onclick="gmap&&gmap.setZoom(gmap.getZoom()+1)">＋</div>
+  <div class="map-ctrl" onclick="gmap&&gmap.setZoom(gmap.getZoom()-1)">－</div>
+  <div class="map-ctrl" onclick="centerOnUser()">📍</div>
+  <div class="map-ctrl" id="preview-btn" onclick="togglePreview()">▶</div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════
+     BOTTOM SHEET
+══════════════════════════════════════════════════════ -->
+<div class="bottom-sheet peek" id="bottom-sheet">
+
+  <!-- ヘッダー（グラデーション） -->
+  <div class="bs-header" id="bs-handle">
+    <div class="bs-handle-row">
+      <div class="bs-handle"></div>
+    </div>
+    <div class="bs-dots">
+      <div class="bs-dot active" id="dot-0"></div>
+      <div class="bs-dot" id="dot-1"></div>
+      <div class="bs-dot" id="dot-2"></div>
+    </div>
+    <!-- 検索行 -->
+    <div class="bs-search-row">
+      <div class="bs-search-box" id="bs-search-box" onclick="bsOpen('half')">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <span class="bs-search-text" id="bs-search-text" data-i18n="search_placeholder">ホテル名・駅名・住所で検索...</span>
+      </div>
+      <div class="bs-mode-toggle">
+        <button class="bs-mode-btn active" id="btn-run" onclick="setMode('run')">🏃</button>
+        <button class="bs-mode-btn" id="btn-bike" onclick="setMode('bike')">🚴</button>
+      </div>
+      <select class="lang-select-mini" onchange="setLang(this.value); document.getElementById('lang-select').value=this.value">
+        <option value="ja">JA</option>
+        <option value="en">EN</option>
+        <option value="zh">ZH</option>
+        <option value="ko">KO</option>
+      </select>
+    </div>
+    <!-- 生成ボタン行 -->
+    <div class="bs-action-row">
+      <button class="bs-gen-btn" onclick="generateRoute()">
+        <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <span data-i18n="generate">コースを生成</span>
+      </button>
+      <div class="bs-clear-btn" onclick="clearRoute()">🗑️</div>
+    </div>
+  </div>
+
+  <!-- スクロールエリア -->
+  <div class="bs-scroll">
+
+    <!-- スタート地点 -->
+    <div class="bs-section">
+      <div class="bs-section-title" data-i18n="start_point">スタート地点</div>
+      <div class="bs-search-full">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="location-input" data-i18n-placeholder="search_placeholder" placeholder="ホテル名・駅名・住所で検索...">
+      </div>
+      <button class="bs-gps-btn" onclick="useGPS()">
+        <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+        <span data-i18n="gps_btn">現在地を取得</span>
+      </button>
+      <div class="bs-start-badge" id="start-badge">
+        <span>📍</span>
+        <span class="bs-start-badge-text" id="start-badge-text">—</span>
+        <span class="bs-start-badge-clear" onclick="clearStart()">✕</span>
+      </div>
+    </div>
+
+    <!-- 観光スポット数 -->
+    <div class="bs-section">
+      <div class="bs-section-title" data-i18n="spots_count">経由する観光スポット数</div>
+      <div class="spots-grid">
+        <div class="spot-btn" id="spot-0" onclick="setSpotCount(0)">
+          <span class="spot-num">0</span>
+          <span class="spot-btn-label" data-i18n="spot_none">なし</span>
+        </div>
+        <div class="spot-btn active" id="spot-1" onclick="setSpotCount(1)">
+          <span class="spot-num">1</span>
+          <span class="spot-btn-label" data-i18n="spot_place">か所</span>
+        </div>
+        <div class="spot-btn" id="spot-2" onclick="setSpotCount(2)">
+          <span class="spot-num">2</span>
+          <span class="spot-btn-label" data-i18n="spot_places">か所</span>
+        </div>
+        <div class="spot-btn" id="spot-3" onclick="setSpotCount(3)">
+          <span class="spot-num">3</span>
+          <span class="spot-btn-label" data-i18n="spot_places">か所</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- スポットタイプ -->
+    <div class="bs-section" id="spot-type-section">
+      <div class="bs-section-title" data-i18n="spot_type">スポットの種類</div>
+      <div class="spot-type-grid">
+        <div class="spot-type-card active" id="type-sightseeing" onclick="toggleSpotType('sightseeing')">
+          <span class="spot-type-icon">🏛️</span>
+          <div>
+            <div class="spot-type-name" data-i18n="type_sightseeing">観光名所</div>
+            <div class="spot-type-desc" data-i18n="type_sightseeing_d">有名スポット・展望台</div>
+          </div>
+        </div>
+        <div class="spot-type-card" id="type-shrine" onclick="toggleSpotType('shrine')">
+          <span class="spot-type-icon">⛩️</span>
+          <div>
+            <div class="spot-type-name" data-i18n="type_shrine">神社・寺</div>
+            <div class="spot-type-desc" data-i18n="type_shrine_d">パワースポット</div>
+          </div>
+        </div>
+        <div class="spot-type-card" id="type-museum" onclick="toggleSpotType('museum')">
+          <span class="spot-type-icon">🎨</span>
+          <div>
+            <div class="spot-type-name" data-i18n="type_museum">美術館・博物館</div>
+            <div class="spot-type-desc" data-i18n="type_museum_d">文化・アート</div>
+          </div>
+        </div>
+        <div class="spot-type-card" id="type-cafe" onclick="toggleSpotType('cafe')">
+          <span class="spot-type-icon">☕</span>
+          <div>
+            <div class="spot-type-name" data-i18n="type_cafe">カフェ</div>
+            <div class="spot-type-desc" data-i18n="type_cafe_d">評価4以上</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 距離 -->
+    <div class="bs-section">
+      <div class="bs-section-title" data-i18n="distance">距離設定</div>
+      <div class="dist-row">
+        <div class="dist-num-wrap">
+          <span class="dist-num" id="dist-num">5</span>
+          <span class="dist-unit">KM</span>
+        </div>
+        <div class="dist-right">
+          <input type="range" class="dist-slider" id="dist-slider"
+            min="1" max="42" value="5"
+            oninput="updateDist(this.value)">
+          <div class="dist-presets">
+            <div class="dist-preset active" onclick="setDist(5)">5K</div>
+            <div class="dist-preset" onclick="setDist(10)">10K</div>
+            <div class="dist-preset" onclick="setDist(15)">15K</div>
+            <div class="dist-preset" onclick="setDist(21)">HM</div>
+            <div class="dist-preset" onclick="setDist(42)">FM</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ペース設定 -->
+    <div class="bs-section">
+      <div class="bs-section-title" id="pace-label" data-i18n="pace">ペース設定</div>
+      <!-- ランニング -->
+      <div id="run-pace-row" class="pace-row">
+        <div class="dist-num-wrap">
+          <span class="dist-num" id="pace-display" style="font-size:26px">6:00</span>
+          <span class="dist-unit" data-i18n="pace_unit">分/km</span>
+        </div>
+        <div class="dist-right">
+          <input type="range" class="dist-slider" id="pace-slider"
+            min="180" max="1200" value="360" step="5"
+            oninput="updatePace(this.value)">
+          <div class="dist-presets">
+            <div class="dist-preset" onclick="setPace(480)">8:00</div>
+            <div class="dist-preset" onclick="setPace(420)">7:00</div>
+            <div class="dist-preset active" onclick="setPace(360)">6:00</div>
+            <div class="dist-preset" onclick="setPace(300)">5:00</div>
+            <div class="dist-preset" onclick="setPace(240)">4:00</div>
+          </div>
+        </div>
+      </div>
+      <!-- サイクリング -->
+      <div id="bike-pace-row" class="pace-row" style="display:none">
+        <div class="dist-num-wrap">
+          <span class="dist-num" id="speed-display">20</span>
+          <span class="dist-unit">km/h</span>
+        </div>
+        <div class="dist-right">
+          <input type="range" class="dist-slider" id="speed-slider"
+            min="5" max="60" value="20" step="1"
+            oninput="updateSpeed(this.value)">
+          <div class="dist-presets">
+            <div class="dist-preset" onclick="setSpeed(10)">10</div>
+            <div class="dist-preset" onclick="setSpeed(15)">15</div>
+            <div class="dist-preset active" onclick="setSpeed(20)">20</div>
+            <div class="dist-preset" onclick="setSpeed(30)">30</div>
+            <div class="dist-preset" onclick="setSpeed(40)">40</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ルートオプション -->
+    <div class="bs-section">
+      <div class="bs-section-title" data-i18n="route_options">ルートオプション</div>
+      <div class="opt-grid">
+        <div class="opt-card active" id="opt-loop" onclick="toggleOpt('loop')">
+          <div class="opt-icon">🔄</div>
+          <div class="opt-name" data-i18n="opt_loop">ループ</div>
+          <div class="opt-desc" data-i18n="opt_loop_d">スタートへ戻る</div>
+        </div>
+        <div class="opt-card" id="opt-scenic" onclick="toggleOpt('scenic')">
+          <div class="opt-icon">🌸</div>
+          <div class="opt-name" data-i18n="opt_scenic">景観ルート</div>
+          <div class="opt-desc" data-i18n="opt_scenic_d">公園・川沿いを優先</div>
+        </div>
+        <div class="opt-card" id="opt-flat" onclick="toggleOpt('flat')">
+          <div class="opt-icon">📏</div>
+          <div class="opt-name" data-i18n="opt_flat">フラット</div>
+          <div class="opt-desc" data-i18n="opt_flat_d">高低差を最小限に</div>
+        </div>
+        <div class="opt-card" id="opt-less-signals" onclick="toggleOpt('less-signals')">
+          <div class="opt-icon">🚦</div>
+          <div class="opt-name" data-i18n="opt_signals">信号が少ない</div>
+          <div class="opt-desc" data-i18n="opt_signals_d">交差点を最小化</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ルート情報（生成後） -->
+    <div class="bs-section" id="result-section" style="display:none">
+      <div class="bs-section-title" data-i18n="route_info">ルート情報</div>
+
+      <!-- AI生成中 -->
+      <div class="ai-generating" id="ai-generating" style="display:none">
+        <span class="ai-pulse">✨</span>
+        <span data-i18n="ai_generating">AIがコース名を生成中...</span>
+      </div>
+
+      <!-- ルート情報カード -->
+      <div class="route-info-card" id="route-info-card" style="display:none">
+        <div class="route-name" id="route-name">—</div>
+        <div class="route-desc" id="route-desc">—</div>
+        <div class="route-stats">
+          <div class="route-stat">
+            <span class="route-stat-val" id="r-dist">—</span>
+            <div class="route-stat-unit">KM</div>
+            <div class="route-stat-lbl" data-i18n="st_dist">距離</div>
+          </div>
+          <div class="route-stat">
+            <span class="route-stat-val" id="r-time">—</span>
+            <div class="route-stat-unit">MIN</div>
+            <div class="route-stat-lbl" data-i18n="st_time">時間</div>
+          </div>
+          <div class="route-stat">
+            <span class="route-stat-val" id="r-elev">—</span>
+            <div class="route-stat-unit">M</div>
+            <div class="route-stat-lbl" data-i18n="st_elev">標高</div>
+          </div>
+        </div>
+        <div class="spot-tags" id="spot-tags"></div>
+        <div class="export-row">
+          <button class="export-btn primary" onclick="exportGPX()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            GPX
+          </button>
+          <button class="export-btn" onclick="openGoogleMaps()">
+            🟢 Google Maps
+          </button>
+        </div>
+      </div>
+
+      <!-- シェア -->
+      <div class="share-card" id="share-card" style="display:none">
+        <div class="bs-section-title" data-i18n="share_route">ルートをシェア</div>
+        <div class="share-url" id="share-url">—</div>
+        <div class="share-btns">
+          <button class="share-btn" onclick="copyShareUrl()">
+            📋 <span data-i18n="copy_url">URLをコピー</span>
+          </button>
+          <button class="share-btn secondary" onclick="showQR()">
+            📷 QRコード
+          </button>
+        </div>
+        <canvas id="qr-canvas" width="160" height="160" style="display:none"></canvas>
+      </div>
+    </div>
+
+  </div><!-- /bs-scroll -->
+</div><!-- /bottom-sheet -->
+
+<!-- ── 履歴パネル ─────────────────────────────────────────── -->
+<div class="history-panel" id="history-panel">
+  <div class="history-header">
+    <span class="history-title" data-i18n="history">ルート履歴</span>
+    <div class="history-close" onclick="toggleHistory()">✕</div>
+  </div>
+  <div class="history-list" id="history-list">
+    <div style="text-align:center;color:var(--ink3);font-size:13px;padding:40px 20px" data-i18n="hist_empty">
+      まだルートはありません。<br>最初のRun Tourismコースを生成しましょう！
+    </div>
+  </div>
+</div>
+
+<!-- ── NOTIFICATION ──────────────────────────────────────── -->
+<div class="notif" id="notif"></div>
+
+<script>
+'use strict';
+
+// ══════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════
+let gmap = null;
+let directionsService = null;
+let directionsRenderer = null;
+let geocoder = null;
+let placesService = null;
+let autocomplete = null;
+let elevationService = null;
+
+let userLocation = null;
+let currentMode = 'run';
+let currentLang = 'ja';
+let selectedOpts = new Set(['loop']);
+let selectedSpotTypes = new Set(['sightseeing']);
+let spotCount = 1;
+let paceSeconds = 360; // 6:00/km
+let speedKmh = 20;
+let distKm = 5;
+let currentRoute = null;
+let routeMarkers = [];
+let routePolylines = [];
+let previewTimer = null;
+let previewIndex = 0;
+let isPreviewPlaying = false;
+let routeHistory = JSON.parse(localStorage.getItem('rw2_history') || '[]');
+
+// ══════════════════════════════════════════════════════════
+// MAP INIT
+// ══════════════════════════════════════════════════════════
+function initMap() {
+  gmap = new google.maps.Map(document.getElementById('map'), {
+    center: { lat: 35.6762, lng: 139.6503 },
+    zoom: 14,
+    disableDefaultUI: true,
+    gestureHandling: 'greedy',
+    styles: [
+      { featureType:'poi', elementType:'labels', stylers:[{visibility:'off'}] },
+      { featureType:'transit', elementType:'labels', stylers:[{visibility:'off'}] },
+    ]
+  });
+
+  directionsService  = new google.maps.DirectionsService();
+  directionsRenderer = new google.maps.DirectionsRenderer({
+    suppressMarkers: true,
+    polylineOptions: { strokeColor:'#0f172a', strokeWeight:4, strokeOpacity:0 }
+  });
+  directionsRenderer.setMap(gmap);
+
+  geocoder          = new google.maps.Geocoder();
+  placesService     = new google.maps.places.PlacesService(gmap);
+  elevationService  = new google.maps.ElevationService();
+
+  // Autocomplete
+  const input = document.getElementById('location-input');
+  autocomplete = new google.maps.places.Autocomplete(input, {
+    types: ['geocode', 'establishment'],
+    componentRestrictions: { country: 'jp' },
+  });
+  autocomplete.addListener('place_changed', () => {
+    const place = autocomplete.getPlace();
+    if (!place.geometry) return;
+    setStart(
+      place.geometry.location.lat(),
+      place.geometry.location.lng(),
+      place.name || place.formatted_address
+    );
+  });
+
+  // 現在地取得
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(pos => {
+      gmap.setCenter({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+    });
+  }
+
+  // 言語自動検出
+  const browserLang = navigator.language.split('-')[0];
+  if (['ja','en','zh','ko'].includes(browserLang)) {
+    setLang(browserLang);
+    document.querySelectorAll('.lang-btn, #lang-select, .lang-select-mini').forEach(el => {
+      if (el.tagName === 'SELECT') el.value = browserLang;
+    });
+  }
+
+  // 履歴表示
+  renderHistory();
+
+  // 初回バウンス
+  if (!sessionStorage.getItem('rw2_bounced')) {
+    setTimeout(() => {
+      const sheet = document.getElementById('bottom-sheet');
+      sheet.classList.add('bounce');
+      sheet.addEventListener('animationend', () => sheet.classList.remove('bounce'), { once: true });
+      sessionStorage.setItem('rw2_bounced', '1');
+    }, 1400);
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// BOTTOM SHEET
+// ══════════════════════════════════════════════════════════
+let bsState = 'peek';
+let dragStartY = 0;
+
+function bsOpen(state) {
+  bsState = state;
+  const sheet = document.getElementById('bottom-sheet');
+  sheet.classList.remove('peek','half','full');
+  sheet.classList.add(state);
+
+  // ドット更新
+  const idx = { peek:0, half:1, full:2 }[state] ?? 0;
+  document.querySelectorAll('.bs-dot').forEach((d,i) => d.classList.toggle('active', i===idx));
+}
+
+const handle = document.getElementById('bs-handle');
+handle.addEventListener('touchstart', e => { dragStartY = e.touches[0].clientY; }, { passive:true });
+handle.addEventListener('touchend', e => {
+  const dy = e.changedTouches[0].clientY - dragStartY;
+  if (dy < -50) bsOpen(bsState === 'peek' ? 'half' : 'full');
+  else if (dy > 50) bsOpen(bsState === 'full' ? 'half' : 'peek');
+}, { passive:true });
+
+// ══════════════════════════════════════════════════════════
+// START LOCATION
+// ══════════════════════════════════════════════════════════
+function setStart(lat, lng, name) {
+  userLocation = { lat, lng };
+  gmap.setCenter({ lat, lng });
+
+  const badge = document.getElementById('start-badge');
+  const badgeText = document.getElementById('start-badge-text');
+  const searchText = document.getElementById('bs-search-text');
+
+  badgeText.textContent = name;
+  badge.classList.add('show');
+  searchText.textContent = name;
+
+  notify(`📍 ${name}`, 'success');
+  bsOpen('peek');
+}
+
+function clearStart() {
+  userLocation = null;
+  document.getElementById('start-badge').classList.remove('show');
+  document.getElementById('bs-search-text').textContent = t('search_placeholder');
+  document.getElementById('location-input').value = '';
+}
+
+function useGPS() {
+  if (!navigator.geolocation) { notify('❌ 位置情報が使えません', 'error'); return; }
+  notify(t('gps_btn') + '...', 'info');
+  navigator.geolocation.getCurrentPosition(pos => {
+    const lat = pos.coords.latitude, lng = pos.coords.longitude;
+    geocoder.geocode({ location: {lat,lng} }, (res, status) => {
+      const name = status === 'OK' && res[0] ? res[0].formatted_address : `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+      setStart(lat, lng, name);
+    });
+  }, () => notify('❌ 位置情報の取得に失敗', 'error'));
+}
+
+function centerOnUser() {
+  if (userLocation) gmap.setCenter(userLocation);
+}
+
+// ══════════════════════════════════════════════════════════
+// MODE
+// ══════════════════════════════════════════════════════════
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('btn-run').classList.toggle('active', mode === 'run');
+  document.getElementById('btn-bike').classList.toggle('active', mode === 'bike');
+  document.getElementById('run-pace-row').style.display = mode === 'run' ? 'flex' : 'none';
+  document.getElementById('bike-pace-row').style.display = mode === 'bike' ? 'flex' : 'none';
+  document.getElementById('pace-label').setAttribute('data-i18n', mode === 'run' ? 'pace' : 'speed');
+  document.getElementById('pace-label').textContent = t(mode === 'run' ? 'pace' : 'speed');
+}
+
+// ══════════════════════════════════════════════════════════
+// SPOT COUNT & TYPE
+// ══════════════════════════════════════════════════════════
+function setSpotCount(n) {
+  spotCount = n;
+  document.querySelectorAll('.spot-btn').forEach((el,i) => el.classList.toggle('active', i===n));
+  document.getElementById('spot-type-section').style.display = n > 0 ? 'block' : 'none';
+}
+
+function toggleSpotType(type) {
+  const el = document.getElementById(`type-${type}`);
+  if (selectedSpotTypes.has(type)) {
+    if (selectedSpotTypes.size > 1) {
+      selectedSpotTypes.delete(type);
+      el.classList.remove('active');
+    }
+  } else {
+    selectedSpotTypes.add(type);
+    el.classList.add('active');
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// DISTANCE & PACE
+// ══════════════════════════════════════════════════════════
+function updateDist(val) {
+  distKm = parseInt(val);
+  document.getElementById('dist-num').textContent = distKm;
+  const slider = document.getElementById('dist-slider');
+  const pct = ((distKm - 1) / (42 - 1)) * 100;
+  slider.style.setProperty('--pct', pct + '%');
+  document.querySelectorAll('.dist-presets .dist-preset').forEach(el => {
+    el.classList.remove('active');
+  });
+}
+
+function setDist(km) {
+  distKm = km;
+  document.getElementById('dist-slider').value = km;
+  updateDist(km);
+  document.querySelectorAll('.dist-presets .dist-preset').forEach(el => {
+    const v = el.textContent === 'HM' ? 21 : el.textContent === 'FM' ? 42 : parseInt(el.textContent);
+    el.classList.toggle('active', v === km);
+  });
+}
+
+function updatePace(val) {
+  paceSeconds = parseInt(val);
+  const m = Math.floor(paceSeconds/60), s = paceSeconds%60;
+  document.getElementById('pace-display').textContent = `${m}:${String(s).padStart(2,'0')}`;
+  const slider = document.getElementById('pace-slider');
+  const pct = ((paceSeconds - 180) / (1200 - 180)) * 100;
+  slider.style.setProperty('--pct', pct + '%');
+}
+
+function setPace(sec) {
+  paceSeconds = sec;
+  document.getElementById('pace-slider').value = sec;
+  updatePace(sec);
+}
+
+function updateSpeed(val) {
+  speedKmh = parseInt(val);
+  document.getElementById('speed-display').textContent = speedKmh;
+  const slider = document.getElementById('speed-slider');
+  const pct = ((speedKmh - 5) / (60 - 5)) * 100;
+  slider.style.setProperty('--pct', pct + '%');
+}
+
+function setSpeed(spd) {
+  speedKmh = spd;
+  document.getElementById('speed-slider').value = spd;
+  updateSpeed(spd);
+}
+
+// ══════════════════════════════════════════════════════════
+// OPTIONS
+// ══════════════════════════════════════════════════════════
+function toggleOpt(opt) {
+  const el = document.getElementById(`opt-${opt}`);
+  if (opt === 'loop') {
+    selectedOpts.add('loop');
+    el.classList.add('active');
+    return;
+  }
+  if (selectedOpts.has(opt)) {
+    selectedOpts.delete(opt);
+    el.classList.remove('active');
+  } else {
+    selectedOpts.add(opt);
+    el.classList.add('active');
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// NEARBY SPOTS SEARCH
+// ══════════════════════════════════════════════════════════
+const SPOT_TYPE_MAP = {
+  sightseeing: ['tourist_attraction', 'point_of_interest'],
+  shrine:      ['shrine', 'temple', 'place_of_worship'],
+  museum:      ['museum', 'art_gallery'],
+  cafe:        ['cafe'],
+};
+
+function findNearbySpot(lat, lng, radiusKm, type) {
+  return new Promise(resolve => {
+    const radius = Math.min(radiusKm * 800, 8000);
+    const types  = SPOT_TYPE_MAP[type] || ['tourist_attraction'];
+    const pType  = types[0];
+
+    placesService.nearbySearch({
+      location: { lat, lng }, radius, type: pType,
+      rankBy: google.maps.places.RankBy.PROMINENCE,
+    }, (results, status) => {
+      if (status !== 'OK' || !results.length) { resolve(null); return; }
+      const pool = results.filter(p => p.rating && p.rating >= 3.5);
+      const arr  = pool.length ? pool : results;
+      arr.sort((a,b) => (b.rating||0) - (a.rating||0));
+      const chosen = arr.slice(0, Math.min(5, arr.length))[Math.floor(Math.random() * Math.min(5, arr.length))];
+      resolve({
+        name:     chosen.name,
+        rating:   chosen.rating || 0,
+        location: {
+          lat: chosen.geometry.location.lat(),
+          lng: chosen.geometry.location.lng(),
+        }
+      });
+    });
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+// ROUTE GENERATION
+// ══════════════════════════════════════════════════════════
+async function generateRoute() {
+  if (!userLocation) { notify(t('err_no_start'), 'error'); return; }
+  if (distKm < 1)    { notify(t('err_distance'), 'error'); return; }
+
+  const btn = document.querySelector('.bs-gen-btn');
+  btn.disabled = true;
+  btn.querySelector('span').textContent = t('generating');
+
+  clearRoute(false);
+  bsOpen('peek');
+
+  try {
+    // スポット検索
+    const spots = [];
+    if (spotCount > 0) {
+      notify('🏛️ 観光スポットを検索中...', 'info');
+      const typeArr = [...selectedSpotTypes];
+      for (let i = 0; i < spotCount; i++) {
+        const type = typeArr[i % typeArr.length];
+        const spot = await findNearbySpot(userLocation.lat, userLocation.lng, distKm / 2, type);
+        if (spot && !spots.find(s => s.name === spot.name)) {
+          spots.push(spot);
+          notify(`✅ 「${spot.name}」を追加`, 'success');
+        }
+      }
+    }
+
+    // ウェイポイント生成
+    const wps = buildWaypoints(userLocation.lat, userLocation.lng, distKm, spots);
+
+    // ルート計算
+    await computeRoute(userLocation.lat, userLocation.lng, distKm, wps, spots);
+
+  } catch(e) {
+    console.error(e);
+    notify(t('err_route'), 'error');
+  } finally {
+    btn.disabled = false;
+    btn.querySelector('span').textContent = t('generate');
+  }
+}
+
+function buildWaypoints(lat, lng, km, spots) {
+  const wps = [];
+  const n = km <= 5 ? 6 : km <= 15 ? 8 : 16;
+  const radius = (km / (2 * Math.PI)) * 1.1;
+  const radiusDeg = radius / 111;
+  const lngScale  = Math.cos(lat * Math.PI / 180);
+  const base = Math.random() * 360;
+
+  for (let i = 0; i < n; i++) {
+    const angle = (base + (360/n)*i + (Math.random()-0.5)*10) * Math.PI / 180;
+    wps.push({
+      location: {
+        lat: lat + radiusDeg * Math.cos(angle),
+        lng: lng + (radiusDeg / lngScale) * Math.sin(angle),
+      },
+      stopover: true,
+    });
+  }
+
+  // スポットを均等に挿入
+  spots.forEach((spot, i) => {
+    const insertAt = Math.round((i+1) * wps.length / (spots.length+1));
+    wps.splice(Math.min(insertAt, wps.length-1), 0, {
+      location: { lat: spot.location.lat, lng: spot.location.lng },
+      stopover: true,
+    });
+  });
+
+  return wps;
+}
+
+function computeRoute(lat, lng, targetKm, wps, spots) {
+  return new Promise((resolve, reject) => {
+    let scale = 1.0, attempts = 0;
+    const MAX = 8;
+    const TOLERANCE = targetKm >= 42 ? 2.0 : targetKm >= 21 ? 1.5 : 0.8;
+    const origin = new google.maps.LatLng(lat, lng);
+    const travelMode = targetKm >= 50
+      ? google.maps.TravelMode.BICYCLING
+      : google.maps.TravelMode.WALKING;
+
+    const tryRoute = () => {
+      attempts++;
+      // スケール再計算
+      const scaledWps = wps.map(wp => {
+        if (spots.find(s => s.location.lat === wp.location.lat)) return wp; // スポットはスケールしない
+        const dLat = wp.location.lat - lat;
+        const dLng = wp.location.lng - lng;
+        return {
+          location: { lat: lat + dLat*scale, lng: lng + dLng*scale },
+          stopover: true,
+        };
+      });
+
+      directionsService.route({
+        origin, destination: origin,
+        waypoints: scaledWps,
+        travelMode,
+        optimizeWaypoints: false,
+        unitSystem: google.maps.UnitSystem.METRIC,
+        avoidHighways: true, avoidTolls: true, avoidFerries: true,
+      }, (result, status) => {
+        if (status !== 'OK') {
+          if (status === 'ZERO_RESULTS' && attempts < MAX) { scale *= 0.7; tryRoute(); return; }
+          reject(new Error(status)); return;
+        }
+
+        const legs   = result.routes[0].legs;
+        const actual = legs.reduce((s,l) => s + l.distance.value, 0) / 1000;
+        const error  = Math.abs(actual - targetKm);
+
+        if (error <= TOLERANCE || attempts >= MAX) {
+          renderRoute(result, targetKm, actual, spots);
+          resolve();
+        } else {
+          scale *= targetKm / actual;
+          scale = Math.max(0.2, Math.min(4.0, scale));
+          tryRoute();
+        }
+      });
+    };
+    tryRoute();
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+// RENDER ROUTE
+// ══════════════════════════════════════════════════════════
+function renderRoute(result, targetKm, actualKm, spots) {
+  clearPolylines();
+
+  const path = [];
+  result.routes[0].legs.forEach(l => l.steps.forEach(s => s.path.forEach(p => path.push(p))));
+
+  currentRoute = { path, result, targetKm, actualKm, spots };
+
+  // グロー
+  routePolylines.push(new google.maps.Polyline({
+    path, geodesic: true, strokeColor: '#0f172a',
+    strokeOpacity: .12, strokeWeight: 14, map: gmap
+  }));
+  // メイン
+  routePolylines.push(new google.maps.Polyline({
+    path, geodesic: true, strokeColor: '#0f172a',
+    strokeOpacity: .9, strokeWeight: 4, map: gmap
+  }));
+
+  // スタートマーカー
+  placeMarker(result.routes[0].legs[0].start_location, '🟢', 'スタート');
+
+  // スポットマーカー
+  spots.forEach(s => placeMarker({ lat: s.location.lat, lng: s.location.lng }, '🏛️', s.name));
+
+  // フィット
+  const bounds = new google.maps.LatLngBounds();
+  path.forEach(p => bounds.extend(p));
+  gmap.fitBounds(bounds, { top:80, right:20, bottom:200, left:20 });
+
+  // 標高グラフ
+  drawElevation(path);
+
+  // 統計
+  const legs      = result.routes[0].legs;
+  const timeMin   = currentMode === 'run'
+    ? Math.round(actualKm * paceSeconds / 60)
+    : Math.round(actualKm / speedKmh * 60);
+
+  document.getElementById('r-dist').textContent = actualKm.toFixed(1);
+  document.getElementById('r-time').textContent = timeMin;
+
+  // 標高差計算
+  elevationService.getElevationAlongPath({ path: path.slice(0,100), samples: 50 }, (res, st) => {
+    if (st === 'OK') {
+      let elev = 0;
+      for (let i = 1; i < res.length; i++) {
+        const d = res[i].elevation - res[i-1].elevation;
+        if (d > 0) elev += d;
+      }
+      document.getElementById('r-elev').textContent = Math.round(elev);
+    }
+  });
+
+  // スポットタグ
+  const tagsEl = document.getElementById('spot-tags');
+  tagsEl.innerHTML = spots.map(s => `<div class="spot-tag">🏛️ ${s.name}</div>`).join('');
+
+  // 結果表示
+  document.getElementById('result-section').style.display = 'block';
+  document.getElementById('ai-generating').style.display = 'flex';
+  document.getElementById('route-info-card').style.display = 'none';
+  document.getElementById('share-card').style.display = 'none';
+
+  // 履歴保存
+  const startName = document.getElementById('start-badge-text').textContent || '不明';
+  saveHistory({ startName, actualKm, timeMin, spots, path });
+
+  // AIコース名生成
+  generateCourseName(actualKm, startName, spots);
+}
+
+function placeMarker(position, icon, title) {
+  const m = new google.maps.Marker({
+    position, map: gmap, title,
+    label: { text: icon, fontSize: '20px' },
+    icon: { path: google.maps.SymbolPath.CIRCLE, scale: 0, }
+  });
+  routeMarkers.push(m);
+}
+
+// ══════════════════════════════════════════════════════════
+// AI COURSE NAME (Claude API)
+// ══════════════════════════════════════════════════════════
+async function generateCourseName(actualKm, startName, spots) {
+  const langMap = { ja:'日本語', en:'English', zh:'中文', ko:'한국어' };
+  const outputLang = langMap[currentLang] || '日本語';
+  const spotNames = spots.map(s => s.name).join('、') || 'なし';
+  const mode = currentMode === 'run' ? 'ランニング' : 'サイクリング';
+  const opts = [...selectedOpts].join('、') || 'なし';
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 400,
+        messages: [{
+          role: 'user',
+          content: `あなたはRun Tourism（ランニング観光）のコース命名専門家です。
+以下の情報をもとに${outputLang}でコース名と説明文を生成してください。
+JSON形式のみで返してください。前置き・マークダウン不要。
+
+情報:
+- スタート: ${startName}
+- 距離: ${actualKm.toFixed(1)}km
+- モード: ${mode}
+- 経由スポット: ${spotNames}
+- オプション: ${opts}
+
+要件:
+- コース名: 魅力的で旅行者に響く名前（${currentLang === 'ja' ? '15文字以内' : '30 chars max'}）
+- 説明文: 走りながら観光する体験を伝える文章（${currentLang === 'ja' ? '80文字以内' : '100 chars max'}）
+- おすすめ時間帯（朝・昼・夕・夜）も1つ提案
+
+JSON:
+{"name": "...", "desc": "...", "best_time": "朝ラン"}`
+        }]
+      })
+    });
+
+    const data = await res.json();
+    const text = data.content?.[0]?.text || '';
+    const clean = text.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+
+    document.getElementById('route-name').textContent = parsed.name || '—';
+    document.getElementById('route-desc').textContent =
+      `${parsed.desc || '—'}${parsed.best_time ? ` ⏰ ${parsed.best_time}` : ''}`;
+
+    document.getElementById('ai-generating').style.display = 'none';
+    document.getElementById('route-info-card').style.display = 'block';
+
+    // シェアURL生成
+    generateShareUrl(parsed.name);
+
+  } catch(e) {
+    console.warn('AI generation failed:', e);
+    document.getElementById('route-name').textContent = `${distKm}km Run Tourism`;
+    document.getElementById('route-desc').textContent = `${document.getElementById('start-badge-text').textContent}発のランニング観光コース`;
+    document.getElementById('ai-generating').style.display = 'none';
+    document.getElementById('route-info-card').style.display = 'block';
+    generateShareUrl('RunWhere Route');
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// SHARE & QR
+// ══════════════════════════════════════════════════════════
+function generateShareUrl(name) {
+  if (!currentRoute) return;
+  const data = {
+    v: 2,
+    n: name,
+    s: document.getElementById('start-badge-text').textContent,
+    d: currentRoute.actualKm.toFixed(1),
+    sp: currentRoute.spots.map(s => s.name),
+    p: currentRoute.path.slice(0, 50).map(p => [
+      p.lat().toFixed(5), p.lng().toFixed(5)
+    ]),
+  };
+
+  const encoded = btoa(encodeURIComponent(JSON.stringify(data)));
+  const url = `${location.origin}${location.pathname}?r=${encoded}`;
+
+  document.getElementById('share-url').textContent = url;
+  document.getElementById('share-card').style.display = 'block';
+}
+
+function copyShareUrl() {
+  const url = document.getElementById('share-url').textContent;
+  navigator.clipboard.writeText(url).then(() => {
+    notify('📋 URLをコピーしました', 'success');
+  }).catch(() => {
+    notify('コピーに失敗しました', 'error');
+  });
+}
+
+function showQR() {
+  const canvas = document.getElementById('qr-canvas');
+  const url = document.getElementById('share-url').textContent;
+
+  // シンプルなQRコード（Google Charts API）
+  const img = new Image();
+  img.onload = () => {
+    canvas.style.display = 'block';
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, 160, 160);
+  };
+  img.src = `https://chart.googleapis.com/chart?chs=160x160&cht=qr&chl=${encodeURIComponent(url)}&choe=UTF-8`;
+  notify('📷 QRコードを生成しました', 'success');
+}
+
+// ══════════════════════════════════════════════════════════
+// CLEAR
+// ══════════════════════════════════════════════════════════
+function clearRoute(showNotif = true) {
+  clearPolylines();
+  routeMarkers.forEach(m => m.setMap(null));
+  routeMarkers = [];
+  currentRoute = null;
+
+  document.getElementById('result-section').style.display = 'none';
+  document.getElementById('elev-bar').style.display = 'none';
+  stopPreview();
+
+  if (showNotif) notify('🗑️ ルートをクリアしました', 'info');
+}
+
+function clearPolylines() {
+  routePolylines.forEach(p => p.setMap(null));
+  routePolylines = [];
+}
+
+// ══════════════════════════════════════════════════════════
+// ELEVATION
+// ══════════════════════════════════════════════════════════
+function drawElevation(path) {
+  const samples = 100;
+  elevationService.getElevationAlongPath({ path: path.slice(0, samples), samples }, (res, st) => {
+    if (st !== 'OK') return;
+    const bar = document.getElementById('elev-bar');
+    const canvas = document.getElementById('elev-canvas');
+    bar.style.display = 'block';
+
+    const W = canvas.offsetWidth || window.innerWidth;
+    const H = 90;
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+
+    const elevs = res.map(r => r.elevation);
+    const min = Math.min(...elevs), max = Math.max(...elevs);
+    const range = max - min || 1;
+
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0,   'rgba(15,23,42,.5)');
+    grad.addColorStop(1,   'rgba(15,23,42,.0)');
+
+    ctx.clearRect(0, 0, W, H);
+    ctx.beginPath();
+    ctx.moveTo(0, H);
+
+    elevs.forEach((e, i) => {
+      const x = (i / (elevs.length-1)) * W;
+      const y = H - ((e-min)/range) * (H*.7) - H*.1;
+      i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    });
+
+    ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
+    ctx.fillStyle = grad; ctx.fill();
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+// PREVIEW
+// ══════════════════════════════════════════════════════════
+function togglePreview() {
+  if (isPreviewPlaying) stopPreview();
+  else startPreview();
+}
+
+function startPreview() {
+  if (!currentRoute?.path?.length) { notify('先にルートを生成してください', 'error'); return; }
+  isPreviewPlaying = true;
+  previewIndex = 0;
+  document.getElementById('preview-btn').classList.add('preview-active');
+  document.getElementById('preview-btn').textContent = '⏹';
+
+  const path = currentRoute.path;
+  previewTimer = setInterval(() => {
+    if (previewIndex >= path.length) { stopPreview(); return; }
+    gmap.panTo(path[previewIndex]);
+    previewIndex += 3;
+  }, 80);
+}
+
+function stopPreview() {
+  isPreviewPlaying = false;
+  clearInterval(previewTimer);
+  document.getElementById('preview-btn').classList.remove('preview-active');
+  document.getElementById('preview-btn').textContent = '▶';
+}
+
+// ══════════════════════════════════════════════════════════
+// EXPORT
+// ══════════════════════════════════════════════════════════
+function exportGPX() {
+  if (!currentRoute) { notify('先にルートを生成してください', 'error'); return; }
+  const name = document.getElementById('route-name').textContent || 'RunWhere';
+  let gpx = `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="RunWhere 2.0">
+  <trk><name>${name}</name><trkseg>\n`;
+  currentRoute.path.forEach(p => {
+    gpx += `      <trkpt lat="${p.lat().toFixed(7)}" lon="${p.lng().toFixed(7)}"></trkpt>\n`;
+  });
+  gpx += `    </trkseg></trk>\n</gpx>`;
+
+  const blob = new Blob([gpx], { type:'application/gpx+xml' });
+  const url  = URL.createObjectURL(blob);
+  const a    = Object.assign(document.createElement('a'), { href:url, download:`${name}.gpx` });
+  a.click(); URL.revokeObjectURL(url);
+  notify('📁 GPXをダウンロードしました', 'success');
+}
+
+function openGoogleMaps() {
+  if (!currentRoute || !userLocation) { notify('先にルートを生成してください', 'error'); return; }
+  const path = currentRoute.path;
+
+  function samplePts(pts, n) {
+    if (pts.length <= n) return pts;
+    return Array.from({length:n}, (_,i) => pts[Math.round(i*(pts.length-1)/(n-1))]);
+  }
+
+  const sampled = samplePts(path.slice(1,-1), 8);
+  const origin  = `${userLocation.lat},${userLocation.lng}`;
+  const wps     = sampled.map(p => `${p.lat().toFixed(6)},${p.lng().toFixed(6)}`).join('/');
+  const url = wps
+    ? `https://www.google.com/maps/dir/${origin}/${wps}/${origin}`
+    : `https://www.google.com/maps/dir/${origin}/${origin}`;
+
+  window.open(url, '_blank');
+  notify('🟢 Google Mapsを開いています...', 'success');
+}
+
+// ══════════════════════════════════════════════════════════
+// HISTORY
+// ══════════════════════════════════════════════════════════
+function saveHistory(item) {
+  item.id = Date.now();
+  item.date = new Date().toLocaleDateString('ja-JP');
+  routeHistory.unshift(item);
+  if (routeHistory.length > 50) routeHistory.pop();
+  localStorage.setItem('rw2_history', JSON.stringify(routeHistory));
+  renderHistory();
+}
+
+function renderHistory() {
+  const list = document.getElementById('history-list');
+  if (!routeHistory.length) {
+    list.innerHTML = `<div style="text-align:center;color:var(--ink3);font-size:13px;padding:40px 20px">${t('hist_empty')}</div>`;
+    return;
+  }
+  list.innerHTML = routeHistory.map(item => `
+    <div class="hist-item">
+      <div class="hist-title">📍 ${item.startName} — ${item.actualKm?.toFixed(1) || '?'}km</div>
+      <div class="hist-meta">${item.date} · ${item.spots?.map(s=>s.name).join('、') || 'スポットなし'}</div>
+      <div class="hist-actions">
+        <button class="hist-action-btn" onclick="deleteHistory(${item.id})">🗑️ 削除</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function deleteHistory(id) {
+  routeHistory = routeHistory.filter(i => i.id !== id);
+  localStorage.setItem('rw2_history', JSON.stringify(routeHistory));
+  renderHistory();
+}
+
+function toggleHistory() {
+  document.getElementById('history-panel').classList.toggle('open');
+}
+
+// ══════════════════════════════════════════════════════════
+// i18n
+// ══════════════════════════════════════════════════════════
+const i18n = {
+  ja: {
+    search_placeholder: 'ホテル名・駅名・住所で検索...',
+    start_point:  'スタート地点',
+    spots_count:  '経由する観光スポット数',
+    spot_none:    'なし',
+    spot_place:   'か所',
+    spot_places:  'か所',
+    spot_type:    'スポットの種類',
+    type_sightseeing:   '観光名所',
+    type_sightseeing_d: '有名スポット・展望台',
+    type_shrine:        '神社・寺',
+    type_shrine_d:      'パワースポット',
+    type_museum:        '美術館・博物館',
+    type_museum_d:      '文化・アート',
+    type_cafe:          'カフェ',
+    type_cafe_d:        '評価4以上',
+    distance:    '距離設定',
+    pace:        'ペース設定',
+    speed:       '速度設定',
+    pace_unit:   '分/km',
+    route_options: 'ルートオプション',
+    opt_loop:    'ループ',
+    opt_loop_d:  'スタートへ戻る',
+    opt_scenic:  '景観ルート',
+    opt_scenic_d:'公園・川沿いを優先',
+    opt_flat:    'フラット',
+    opt_flat_d:  '高低差を最小限に',
+    opt_signals: '信号が少ない',
+    opt_signals_d:'交差点を最小化',
+    generate:    'コースを生成',
+    generating:  '生成中...',
+    gps_btn:     '現在地を取得',
+    route_info:  'ルート情報',
+    st_dist:     '距離',
+    st_time:     '時間',
+    st_elev:     '標高',
+    ai_generating: 'AIがコース名を生成中...',
+    share_route: 'ルートをシェア',
+    copy_url:    'URLをコピー',
+    history:     'ルート履歴',
+    hist_empty:  'まだルートはありません。\n最初のRun Tourismコースを生成しましょう！',
+    err_no_start:'📍 スタート地点を設定してください',
+    err_distance:'⚠️ 1km以上を入力してください',
+    err_route:   '❌ ルート生成に失敗しました',
+  },
+  en: {
+    search_placeholder: 'Hotel, station, or address...',
+    start_point:  'Start Point',
+    spots_count:  'Sightseeing Stops',
+    spot_none:    'None',
+    spot_place:   'stop',
+    spot_places:  'stops',
+    spot_type:    'Spot Type',
+    type_sightseeing:   'Attractions',
+    type_sightseeing_d: 'Famous spots & viewpoints',
+    type_shrine:        'Shrine / Temple',
+    type_shrine_d:      'Sacred sites',
+    type_museum:        'Museum / Gallery',
+    type_museum_d:      'Culture & Art',
+    type_cafe:          'Cafe',
+    type_cafe_d:        'Rated 4★+',
+    distance:    'Distance',
+    pace:        'Pace',
+    speed:       'Speed',
+    pace_unit:   'min/km',
+    route_options: 'Route Options',
+    opt_loop:    'Loop',
+    opt_loop_d:  'Return to start',
+    opt_scenic:  'Scenic',
+    opt_scenic_d:'Parks & riversides',
+    opt_flat:    'Flat',
+    opt_flat_d:  'Minimize elevation',
+    opt_signals: 'Fewer Signals',
+    opt_signals_d:'Minimize crossings',
+    generate:    'Generate Course',
+    generating:  'Generating...',
+    gps_btn:     'Use Current Location',
+    route_info:  'Route Info',
+    st_dist:     'Dist',
+    st_time:     'Time',
+    st_elev:     'Elev',
+    ai_generating: 'AI is generating course name...',
+    share_route: 'Share Route',
+    copy_url:    'Copy URL',
+    history:     'Route History',
+    hist_empty:  'No routes yet.\nGenerate your first Run Tourism course!',
+    err_no_start:'📍 Please set a start point',
+    err_distance:'⚠️ Enter at least 1km',
+    err_route:   '❌ Route generation failed',
+  },
+  zh: {
+    search_placeholder: '酒店名、车站或地址...',
+    start_point:  '出发地',
+    spots_count:  '途经景点数',
+    spot_none:    '无',
+    spot_place:   '处',
+    spot_places:  '处',
+    spot_type:    '景点类型',
+    type_sightseeing:   '观光名胜',
+    type_sightseeing_d: '著名景点・瞭望台',
+    type_shrine:        '神社・寺庙',
+    type_shrine_d:      '圣地',
+    type_museum:        '美术馆・博物馆',
+    type_museum_d:      '文化・艺术',
+    type_cafe:          '咖啡馆',
+    type_cafe_d:        '评分4以上',
+    distance:    '距离设置',
+    pace:        '配速设置',
+    speed:       '速度设置',
+    pace_unit:   '分/km',
+    route_options: '路线选项',
+    opt_loop:    '环形',
+    opt_loop_d:  '返回起点',
+    opt_scenic:  '风景路线',
+    opt_scenic_d:'优先公园河边',
+    opt_flat:    '平坦',
+    opt_flat_d:  '最小化爬升',
+    opt_signals: '少红绿灯',
+    opt_signals_d:'最小化路口',
+    generate:    '生成路线',
+    generating:  '生成中...',
+    gps_btn:     '使用当前位置',
+    route_info:  '路线信息',
+    st_dist:     '距离',
+    st_time:     '时间',
+    st_elev:     '爬升',
+    ai_generating: 'AI正在生成路线名称...',
+    share_route: '分享路线',
+    copy_url:    '复制链接',
+    history:     '路线记录',
+    hist_empty:  '暂无路线。\n生成您的第一条跑步观光路线！',
+    err_no_start:'📍 请设置出发地',
+    err_distance:'⚠️ 请输入至少1km',
+    err_route:   '❌ 路线生成失败',
+  },
+  ko: {
+    search_placeholder: '호텔명, 역명, 주소 입력...',
+    start_point:  '출발지',
+    spots_count:  '경유할 관광지 수',
+    spot_none:    '없음',
+    spot_place:   '곳',
+    spot_places:  '곳',
+    spot_type:    '스팟 종류',
+    type_sightseeing:   '관광명소',
+    type_sightseeing_d: '유명 스팟・전망대',
+    type_shrine:        '신사・사찰',
+    type_shrine_d:      '파워스팟',
+    type_museum:        '미술관・박물관',
+    type_museum_d:      '문화・아트',
+    type_cafe:          '카페',
+    type_cafe_d:        '평점 4이상',
+    distance:    '거리 설정',
+    pace:        '페이스 설정',
+    speed:       '속도 설정',
+    pace_unit:   '분/km',
+    route_options: '루트 옵션',
+    opt_loop:    '루프',
+    opt_loop_d:  '출발지로 돌아오기',
+    opt_scenic:  '경관 루트',
+    opt_scenic_d:'공원・강변 우선',
+    opt_flat:    '평탄',
+    opt_flat_d:  '고저차 최소화',
+    opt_signals: '신호 적게',
+    opt_signals_d:'교차로 최소화',
+    generate:    '코스 생성',
+    generating:  '생성 중...',
+    gps_btn:     '현재 위치 사용',
+    route_info:  '루트 정보',
+    st_dist:     '거리',
+    st_time:     '시간',
+    st_elev:     '고도',
+    ai_generating: 'AI가 코스명을 생성 중...',
+    share_route: '루트 공유',
+    copy_url:    'URL 복사',
+    history:     '루트 기록',
+    hist_empty:  '루트가 없습니다.\n첫 Run Tourism 코스를 생성해보세요!',
+    err_no_start:'📍 출발지를 설정해주세요',
+    err_distance:'⚠️ 1km 이상 입력해주세요',
+    err_route:   '❌ 루트 생성 실패',
+  },
+};
+
+function t(key) {
+  return i18n[currentLang]?.[key] || i18n.ja[key] || key;
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.getAttribute('data-i18n');
+    if (i18n[lang]?.[k]) el.textContent = i18n[lang][k];
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const k = el.getAttribute('data-i18n-placeholder');
+    if (i18n[lang]?.[k]) el.placeholder = i18n[lang][k];
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+// NOTIFICATION
+// ══════════════════════════════════════════════════════════
+let _nt;
+function notify(msg, type = 'info') {
+  const el = document.getElementById('notif');
+  el.textContent = msg;
+  el.className = `notif ${type} show`;
+  clearTimeout(_nt);
+  _nt = setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+// ══════════════════════════════════════════════════════════
+// SHARE URL 読み込み
+// ══════════════════════════════════════════════════════════
+window.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(location.search);
+  const r = params.get('r');
+  if (r) {
+    try {
+      const data = JSON.parse(decodeURIComponent(atob(r)));
+      notify(`📍 "${data.n}" のルートを読み込みました`, 'success');
+    } catch(e) { console.warn('Share URL parse error'); }
+  }
+
+  // スライダー初期化
+  updateDist(5);
+  updatePace(360);
+  updateSpeed(20);
+});
+</script>
+</body>
+</html>
