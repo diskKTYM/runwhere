@@ -1615,51 +1615,7 @@ body {
         </div>
       </div>
 
-      <!-- ペース / 速度設定 -->
-      <div class="card">
-        <div class="card-label" id="pace-card-label">ペース設定</div>
-        <!-- ランニング：分/km -->
-        <div id="pace-run-row" class="pace-row">
-          <input type="number" id="pace-min" class="pace-input" value="6" min="3" max="20" oninput="updatePaceResult()">
-          <span class="pace-sep">:</span>
-          <input type="number" id="pace-sec" class="pace-input" value="00" min="0" max="59" oninput="updatePaceResult()">
-          <span class="pace-unit">分/km</span>
-        </div>
-        <!-- サイクリング：時速km -->
-        <div id="pace-bike-row" class="pace-row" style="display:none">
-          <input type="number" id="bike-speed" class="pace-input" value="20" min="5" max="60" style="width:70px;font-size:22px" oninput="updatePaceResult()">
-          <span class="pace-unit">km/h</span>
-        </div>
-        <div class="pace-result">
-          <span class="pace-result-label" data-i18n="est_time">目安タイム</span>
-          <span class="pace-result-val" id="pace-result-val">—</span>
-        </div>
-      </div>
-
-      <!-- 地図タイプ -->
-      <div class="card">
-        <div class="card-label" data-i18n="map_type">地図タイプ</div>
-        <div class="map-type-toggle">
-          <button class="map-type-btn active" id="mt-normal"    onclick="setMapType('normal')"><span data-i18n="mt_normal">標準</span></button>
-          <button class="map-type-btn"        id="mt-satellite" onclick="setMapType('satellite')"><span data-i18n="mt_satellite">衛星</span></button>
-          <button class="map-type-btn"        id="mt-terrain"   onclick="setMapType('terrain')"><span data-i18n="mt_terrain">地形</span></button>
-          <button class="map-type-btn"        id="mt-dark"      onclick="setMapType('dark')"><span data-i18n="mt_dark">ダーク</span></button>
-        </div>
-      </div>
-
-      <!-- ルートカラー -->
-      <div class="card">
-        <div class="card-label" data-i18n="route_color">ルートカラー</div>
-        <div class="color-picker">
-          <div class="color-swatch active" id="rc-pink"  style="background:#8b5cf6" onclick="setRouteColor('pink',  '#8b5cf6')" title="パープル"></div>
-          <div class="color-swatch"        id="rc-green" style="background:#6366f1" onclick="setRouteColor('green', '#6366f1')" title="インジゴ"></div>
-          <div class="color-swatch"        id="rc-blue"  style="background:#3b82f6" onclick="setRouteColor('blue',  '#3b82f6')" title="ブルー"></div>
-          <div class="color-swatch"        id="rc-red"   style="background:#06b6d4" onclick="setRouteColor('red',   '#06b6d4')" title="シアン"></div>
-          <span class="color-label" id="rc-label">パープル</span>
-        </div>
-      </div>
-
-    </div>
+  
 
     <!-- マップ -->
     <div class="map-wrapper">
@@ -1796,27 +1752,6 @@ body {
       </div>
     </div>
 
-    <!-- ペース／速度設定 -->
-    <div class="bs-section">
-      <div class="bs-section-title" id="bs-pace-label">ペース設定</div>
-      <!-- ランニング：分/km -->
-      <div id="bs-run-row" class="bs-pace-row">
-        <input type="number" id="bs-pace-min" class="bs-pace-input" value="6" min="3" max="20" oninput="bsSyncPace()">
-        <span class="bs-pace-sep">:</span>
-        <input type="number" id="bs-pace-sec" class="bs-pace-input" value="00" min="0" max="59" oninput="bsSyncPace()">
-        <span class="bs-pace-unit">分/km</span>
-      </div>
-      <!-- サイクリング：時速 -->
-      <div id="bs-bike-row" class="bs-pace-row" style="display:none">
-        <input type="number" id="bs-bike-speed" class="bs-pace-input" style="width:64px;font-size:22px" value="20" min="5" max="60" oninput="bsSyncSpeed()">
-        <span class="bs-pace-unit">km/h</span>
-      </div>
-      <div class="bs-pace-result">
-        <span style="font-size:11px;color:var(--text3)">目安タイム</span>
-        <span id="bs-pace-val" style="font-size:20px;font-weight:700;color:white">—</span>
-      </div>
-    </div>
-
     <!-- ルートオプション -->
     <div class="bs-section">
       <div class="bs-section-title" data-i18n="route_options">ルートオプション</div>
@@ -1866,42 +1801,45 @@ body {
       <div class="bs-section-title" id="bs-pace-label">ペース設定</div>
       <!-- ランニング -->
       <div id="bs-run-row" class="bs-pace-row">
-        <div class="bs-pace-slider-wrap">
-          <div class="bs-pace-display">
-            <span class="bs-pace-big" id="bs-pace-display-val">6:00</span>
-            <span class="bs-pace-unit-big">分/km</span>
+        <div class="bs-dist-row">
+          <div>
+            <div class="bs-dist-num" id="bs-pace-display-val" style="font-size:28px;min-width:52px">6:00</div>
+            <div class="bs-dist-unit">分/km</div>
           </div>
-          <input type="range" class="bs-pace-slider" id="bs-pace-slider"
-            min="180" max="1200" value="360" step="5"
-            oninput="bsPaceSliderChange(this.value)">
-          <div class="bs-pace-presets">
-            <div class="bs-pace-preset" onclick="bsSetPace(480)">8:00</div>
-            <div class="bs-pace-preset" onclick="bsSetPace(420)">7:00</div>
-            <div class="bs-pace-preset active" onclick="bsSetPace(360)">6:00</div>
-            <div class="bs-pace-preset" onclick="bsSetPace(300)">5:00</div>
-            <div class="bs-pace-preset" onclick="bsSetPace(240)">4:00</div>
+          <div class="bs-dist-right">
+            <input type="range" class="bs-dist-slider" id="bs-pace-slider"
+              min="180" max="1200" value="360" step="5"
+              oninput="bsPaceSliderChange(this.value)">
+            <div class="bs-dist-presets">
+              <div class="bs-dist-preset" onclick="bsSetPace(480)">8:00</div>
+              <div class="bs-dist-preset" onclick="bsSetPace(420)">7:00</div>
+              <div class="bs-dist-preset active" onclick="bsSetPace(360)">6:00</div>
+              <div class="bs-dist-preset" onclick="bsSetPace(300)">5:00</div>
+              <div class="bs-dist-preset" onclick="bsSetPace(240)">4:00</div>
+            </div>
           </div>
         </div>
-        <!-- 既存inputと同期（hidden） -->
         <input type="hidden" id="bs-pace-min" value="6">
         <input type="hidden" id="bs-pace-sec" value="00">
       </div>
       <!-- サイクリング -->
       <div id="bs-bike-row" class="bs-pace-row" style="display:none">
-        <div class="bs-pace-slider-wrap">
-          <div class="bs-pace-display">
-            <span class="bs-pace-big" id="bs-speed-display-val">20</span>
-            <span class="bs-pace-unit-big">km/h</span>
+        <div class="bs-dist-row">
+          <div>
+            <div class="bs-dist-num" id="bs-speed-display-val" style="min-width:52px">20</div>
+            <div class="bs-dist-unit">km/h</div>
           </div>
-          <input type="range" class="bs-pace-slider" id="bs-speed-slider"
-            min="5" max="60" value="20" step="1"
-            oninput="bsSpeedSliderChange(this.value)">
-          <div class="bs-pace-presets">
-            <div class="bs-pace-preset" onclick="bsSetSpeed(10)">10</div>
-            <div class="bs-pace-preset" onclick="bsSetSpeed(15)">15</div>
-            <div class="bs-pace-preset active" onclick="bsSetSpeed(20)">20</div>
-            <div class="bs-pace-preset" onclick="bsSetSpeed(30)">30</div>
-            <div class="bs-pace-preset" onclick="bsSetSpeed(40)">40</div>
+          <div class="bs-dist-right">
+            <input type="range" class="bs-dist-slider" id="bs-speed-slider"
+              min="5" max="60" value="20" step="1"
+              oninput="bsSpeedSliderChange(this.value)">
+            <div class="bs-dist-presets">
+              <div class="bs-dist-preset" onclick="bsSetSpeed(10)">10</div>
+              <div class="bs-dist-preset" onclick="bsSetSpeed(15)">15</div>
+              <div class="bs-dist-preset active" onclick="bsSetSpeed(20)">20</div>
+              <div class="bs-dist-preset" onclick="bsSetSpeed(30)">30</div>
+              <div class="bs-dist-preset" onclick="bsSetSpeed(40)">40</div>
+            </div>
           </div>
         </div>
         <input type="hidden" id="bs-bike-speed" value="20">
