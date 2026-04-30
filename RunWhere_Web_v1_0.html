@@ -1219,20 +1219,56 @@ body {
   .bs-dist-preset.active,
   .bs-dist-preset:active { background: #6366f1; color: white; border-color: #6366f1; }
 
-  /* ── ペース／速度入力 ── */
+  /* ── ペース／速度スライダー ── */
   .bs-pace-row {
-    display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+    margin-bottom: 8px;
   }
 
-  .bs-pace-input {
-    width: 52px; background: var(--surface2);
-    border: 1px solid var(--border2); border-radius: 10px;
-    padding: 8px 6px; font-size: 20px; font-weight: 700;
-    font-family: inherit; color: var(--text); outline: none; text-align: center;
+  .bs-pace-slider-wrap {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 14px; padding: 12px 14px;
   }
 
-  .bs-pace-sep { font-size: 20px; font-weight: 300; color: var(--text3); }
-  .bs-pace-unit { font-size: 12px; font-weight: 500; color: var(--text3); }
+  .bs-pace-display {
+    display: flex; align-items: baseline; gap: 6px; margin-bottom: 10px;
+  }
+
+  .bs-pace-big {
+    font-size: 38px; font-weight: 700; color: #6366f1;
+    letter-spacing: -1px; line-height: 1;
+  }
+
+  .bs-pace-unit-big {
+    font-size: 13px; font-weight: 600; color: var(--text3);
+  }
+
+  .bs-pace-slider {
+    width: 100%; height: 4px;
+    -webkit-appearance: none; appearance: none;
+    background: linear-gradient(to right, #6366f1 var(--pct,30%), #e5e7eb var(--pct,30%));
+    border-radius: 2px; outline: none; cursor: pointer; margin-bottom: 10px;
+  }
+
+  .bs-pace-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 22px; height: 22px;
+    background: white; border: 3px solid #6366f1;
+    border-radius: 50%; box-shadow: 0 2px 8px rgba(99,102,241,.35);
+    cursor: pointer;
+  }
+
+  .bs-pace-presets {
+    display: flex; gap: 4px;
+  }
+
+  .bs-pace-preset {
+    flex: 1; padding: 5px 0; text-align: center;
+    background: white; border: 1px solid var(--border2);
+    border-radius: 7px; font-size: 11px; font-weight: 600;
+    color: var(--text2); cursor: pointer; transition: all .15s;
+  }
+
+  .bs-pace-preset.active,
+  .bs-pace-preset:active { background: #6366f1; color: white; border-color: #6366f1; }
 
   .bs-pace-result {
     display: flex; align-items: center; justify-content: space-between;
@@ -1830,19 +1866,45 @@ body {
       <div class="bs-section-title" id="bs-pace-label">ペース設定</div>
       <!-- ランニング -->
       <div id="bs-run-row" class="bs-pace-row">
-        <div class="bs-pace-box">
-          <input type="number" id="bs-pace-min" class="bs-pace-input" value="6" min="3" max="20" oninput="bsSyncPace()">
-          <span class="bs-pace-sep">:</span>
-          <input type="number" id="bs-pace-sec" class="bs-pace-input" value="00" min="0" max="59" oninput="bsSyncPace()">
-          <span class="bs-pace-unit">分/km</span>
+        <div class="bs-pace-slider-wrap">
+          <div class="bs-pace-display">
+            <span class="bs-pace-big" id="bs-pace-display-val">6:00</span>
+            <span class="bs-pace-unit-big">分/km</span>
+          </div>
+          <input type="range" class="bs-pace-slider" id="bs-pace-slider"
+            min="180" max="1200" value="360" step="5"
+            oninput="bsPaceSliderChange(this.value)">
+          <div class="bs-pace-presets">
+            <div class="bs-pace-preset" onclick="bsSetPace(480)">8:00</div>
+            <div class="bs-pace-preset" onclick="bsSetPace(420)">7:00</div>
+            <div class="bs-pace-preset active" onclick="bsSetPace(360)">6:00</div>
+            <div class="bs-pace-preset" onclick="bsSetPace(300)">5:00</div>
+            <div class="bs-pace-preset" onclick="bsSetPace(240)">4:00</div>
+          </div>
         </div>
+        <!-- 既存inputと同期（hidden） -->
+        <input type="hidden" id="bs-pace-min" value="6">
+        <input type="hidden" id="bs-pace-sec" value="00">
       </div>
       <!-- サイクリング -->
       <div id="bs-bike-row" class="bs-pace-row" style="display:none">
-        <div class="bs-pace-box">
-          <input type="number" id="bs-bike-speed" class="bs-pace-input bs-pace-input-wide" value="20" min="5" max="60" oninput="bsSyncSpeed()">
-          <span class="bs-pace-unit">km/h</span>
+        <div class="bs-pace-slider-wrap">
+          <div class="bs-pace-display">
+            <span class="bs-pace-big" id="bs-speed-display-val">20</span>
+            <span class="bs-pace-unit-big">km/h</span>
+          </div>
+          <input type="range" class="bs-pace-slider" id="bs-speed-slider"
+            min="5" max="60" value="20" step="1"
+            oninput="bsSpeedSliderChange(this.value)">
+          <div class="bs-pace-presets">
+            <div class="bs-pace-preset" onclick="bsSetSpeed(10)">10</div>
+            <div class="bs-pace-preset" onclick="bsSetSpeed(15)">15</div>
+            <div class="bs-pace-preset active" onclick="bsSetSpeed(20)">20</div>
+            <div class="bs-pace-preset" onclick="bsSetSpeed(30)">30</div>
+            <div class="bs-pace-preset" onclick="bsSetSpeed(40)">40</div>
+          </div>
         </div>
+        <input type="hidden" id="bs-bike-speed" value="20">
       </div>
       <div class="bs-pace-result">
         <span class="bs-pace-result-label" data-i18n="est_time">目安タイム</span>
@@ -3309,29 +3371,118 @@ function t(key) {
   });
 
   // ── ペース同期（ボトムシート→既存） ────────────────
-  window.bsSyncPace = function() {
-    const m = document.getElementById('bs-pace-min')?.value || '6';
-    const s = document.getElementById('bs-pace-sec')?.value || '00';
+  // ── ペーススライダー操作 ──────────────────────────────
+  function secToDisplay(totalSec) {
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+    return `${m}:${String(s).padStart(2,'0')}`;
+  }
+
+  function updatePaceSliderTrack(slider) {
+    const min = parseInt(slider.min), max = parseInt(slider.max);
+    const val = parseInt(slider.value);
+    const pct = ((val - min) / (max - min)) * 100;
+    slider.style.setProperty('--pct', pct + '%');
+  }
+
+  window.bsPaceSliderChange = function(val) {
+    const totalSec = parseInt(val);
+    const display = secToDisplay(totalSec);
+    const m = Math.floor(totalSec / 60);
+    const s = totalSec % 60;
+
+    // 表示更新
+    const dispEl = document.getElementById('bs-pace-display-val');
+    if (dispEl) dispEl.textContent = display;
+
+    // hidden inputと既存inputに同期
+    const bsMin = document.getElementById('bs-pace-min');
+    const bsSec = document.getElementById('bs-pace-sec');
+    if (bsMin) bsMin.value = m;
+    if (bsSec) bsSec.value = String(s).padStart(2,'0');
     const pm = document.getElementById('pace-min');
     const ps = document.getElementById('pace-sec');
     if (pm) pm.value = m;
-    if (ps) ps.value = s;
+    if (ps) ps.value = String(s).padStart(2,'0');
+
+    // スライダートラック色
+    const slider = document.getElementById('bs-pace-slider');
+    if (slider) updatePaceSliderTrack(slider);
+
+    // プリセットのアクティブ状態
+    document.querySelectorAll('#bs-run-row .bs-pace-preset').forEach(el => {
+      el.classList.remove('active');
+    });
+
     updatePaceResult();
-    // ボトムシート側の表示も更新
     const el = document.getElementById('bs-pace-val');
     const orig = document.getElementById('pace-result-val');
     if (el && orig) el.textContent = orig.textContent;
   };
 
-  window.bsSyncSpeed = function() {
-    const spd = document.getElementById('bs-bike-speed')?.value || '20';
+  window.bsSetPace = function(totalSec) {
+    const slider = document.getElementById('bs-pace-slider');
+    if (slider) { slider.value = totalSec; bsPaceSliderChange(totalSec); }
+    // プリセットアクティブ
+    document.querySelectorAll('#bs-run-row .bs-pace-preset').forEach(el => {
+      const pSec = timeStrToSec(el.textContent.trim());
+      el.classList.toggle('active', pSec === totalSec);
+    });
+  };
+
+  function timeStrToSec(str) {
+    const [m, s] = str.split(':').map(Number);
+    return m * 60 + (s || 0);
+  }
+
+  // ── 速度スライダー操作 ─────────────────────────────────
+  window.bsSpeedSliderChange = function(val) {
+    const spd = parseInt(val);
+    const dispEl = document.getElementById('bs-speed-display-val');
+    if (dispEl) dispEl.textContent = spd;
+
+    const bsSpd = document.getElementById('bs-bike-speed');
+    if (bsSpd) bsSpd.value = spd;
     const orig = document.getElementById('bike-speed');
     if (orig) orig.value = spd;
+
+    const slider = document.getElementById('bs-speed-slider');
+    if (slider) updatePaceSliderTrack(slider);
+
+    document.querySelectorAll('#bs-bike-row .bs-pace-preset').forEach(el => {
+      el.classList.toggle('active', parseInt(el.textContent) === spd);
+    });
+
     updatePaceResult();
     const el = document.getElementById('bs-pace-val');
     const origEl = document.getElementById('pace-result-val');
     if (el && origEl) el.textContent = origEl.textContent;
   };
+
+  window.bsSetSpeed = function(spd) {
+    const slider = document.getElementById('bs-speed-slider');
+    if (slider) { slider.value = spd; bsSpeedSliderChange(spd); }
+  };
+
+  // 旧関数も残す（互換性）
+  window.bsSyncPace = function() {
+    const m = parseInt(document.getElementById('pace-min')?.value || 6);
+    const s = parseInt(document.getElementById('pace-sec')?.value || 0);
+    bsSetPace(m * 60 + s);
+  };
+
+  window.bsSyncSpeed = function() {
+    const spd = parseInt(document.getElementById('bike-speed')?.value || 20);
+    bsSetSpeed(spd);
+  };
+
+  // 初期化：スライダートラックを設定
+  document.addEventListener('DOMContentLoaded', () => {
+    const pSlider = document.getElementById('bs-pace-slider');
+    if (pSlider) updatePaceSliderTrack(pSlider);
+    const sSlider = document.getElementById('bs-speed-slider');
+    if (sSlider) updatePaceSliderTrack(sSlider);
+  });
 
   // ── モード切替でペースラベルも更新 ────────────────
   const _origBsSetMode = window.bsSetMode;
