@@ -1391,28 +1391,8 @@ body {
   .bs-start-badge-text { flex: 1; line-height: 1.4; font-size: 11px; color: var(--text2); }
   .bs-start-badge-clear { cursor: pointer; color: var(--text3); font-size: 14px; }
 
-  /* ── シート最下部 固定生成ボタンバー ── */
-  .bs-bottom-bar {
-    flex-shrink: 0;
-    padding: 12px 16px;
-    padding-bottom: max(16px, env(safe-area-inset-bottom));
-    background: white;
-    border-top: 1px solid var(--border);
-  }
-
-  .bs-bottom-gen-btn {
-    width: 100%; padding: 16px;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    color: white; border: none; border-radius: 14px;
-    font-family: inherit; font-size: 16px; font-weight: 700;
-    letter-spacing: .3px; cursor: pointer;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    box-shadow: 0 6px 24px rgba(99,102,241,.4);
-    transition: all .18s;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .bs-bottom-gen-btn:active { transform: scale(.97); }
+  /* ── スクロールエリアの下余白（safe area分） ── */
+  .bs-scroll { padding-bottom: max(24px, env(safe-area-inset-bottom)); }
 }
 
 /* ── MOBILE スクロールヒント ─────────────────────────── */
@@ -1424,9 +1404,6 @@ body {
 
 /* デスクトップではボトムシート内ボタンも非表示 */
 .bs-bottom-bar { display: none; }
-@media (max-width: 700px) {
-  .bs-bottom-bar { display: block; }
-}
 
 .cafe-found-badge {
   padding: 3px 8px;
@@ -1910,14 +1887,6 @@ body {
     </div>
 
   </div><!-- /bs-scroll -->
-
-  <!-- 常に見える生成ボタン（シート最下部固定） -->
-  <div class="bs-bottom-bar">
-    <button class="bs-bottom-gen-btn" onclick="generateRoute()">
-      <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-      <span data-i18n="generate">ルートを生成</span>
-    </button>
-  </div>
 
 </div><!-- /bottom-sheet -->
 
