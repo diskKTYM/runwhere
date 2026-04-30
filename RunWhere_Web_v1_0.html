@@ -1618,7 +1618,6 @@ body {
           <div class="preset" onclick="setDist(15)">15K</div>
           <div class="preset" onclick="setDist(21)">HM</div>
           <div class="preset" onclick="setDist(42)">FM</div>
-          <div class="preset" onclick="setDist(161)">100mi</div>
         </div>
       </div>
 
@@ -1804,14 +1803,13 @@ body {
         </div>
         <div class="bs-dist-right">
           <input type="range" class="bs-dist-slider" id="bs-dist-slider"
-            min="1" max="161" value="5" oninput="bsUpdateDist(this.value)">
+            min="1" max="42" value="5" oninput="bsUpdateDist(this.value)">
           <div class="bs-dist-presets">
             <div class="bs-dist-preset" onclick="bsSetDist(5)">5K</div>
             <div class="bs-dist-preset active" onclick="bsSetDist(10)">10K</div>
             <div class="bs-dist-preset" onclick="bsSetDist(15)">15K</div>
             <div class="bs-dist-preset" onclick="bsSetDist(21)">HM</div>
             <div class="bs-dist-preset" onclick="bsSetDist(42)">FM</div>
-            <div class="bs-dist-preset" onclick="bsSetDist(161)">100mi</div>
           </div>
         </div>
       </div>
@@ -2308,14 +2306,23 @@ function injectCafeWaypoint(wps) {
 
 function computeRoute(lat, lng, targetKm) {
   return new Promise((resolve, reject) => {
-    const MAX_ATTEMPTS = 6;
-    const TOLERANCE_KM = 0.8; // stopover:trueは距離がブレやすいので許容を広げる
+    const MAX_ATTEMPTS = 8;
+    // 長距離ほど許容誤差を広げる
+    const TOLERANCE_KM = targetKm >= 100 ? 5.0
+                       : targetKm >= 42  ? 2.0
+                       : targetKm >= 21  ? 1.5
+                       : 0.8;
     let scaleFactor = 1.0;
     let attempt_count = 0;
 
     const origin = new google.maps.LatLng(lat, lng);
-    // 常にWALKING固定（自動車・自転車専用道・有料道路・フェリー・トンネルを回避）
-    const travelMode = google.maps.TravelMode.WALKING;
+
+    // 距離に応じてトラベルモードを切替
+    // 50km以上はBICYCLING（自転車道を使い長距離経路を確保）
+    // それ以下はWALKING
+    const travelMode = targetKm >= 50
+      ? google.maps.TravelMode.BICYCLING
+      : google.maps.TravelMode.WALKING;
 
     function tryRoute() {
       attempt_count++;
@@ -2330,13 +2337,20 @@ function computeRoute(lat, lng, targetKm) {
         travelMode,
         optimizeWaypoints: false,
         unitSystem: google.maps.UnitSystem.METRIC,
-        avoidHighways: true,   // 高速・自動車専用道を回避
-        avoidTolls: true,      // 有料道路（トンネル含む）を回避
-        avoidFerries: true,    // フェリー・海底トンネルを回避
+        avoidHighways: true,
+        avoidTolls: true,
+        avoidFerries: true,
       };
 
       directionsService.route(req, (result, status) => {
         if (status !== google.maps.DirectionsStatus.OK) {
+          // ZERO_RESULTS の場合はスケールを下げて再試行
+          if (status === 'ZERO_RESULTS' && attempt_count < MAX_ATTEMPTS) {
+            scaleFactor *= 0.7;
+            scaleFactor = Math.max(0.2, scaleFactor);
+            tryRoute();
+            return;
+          }
           reject(new Error(status));
           return;
         }
@@ -2345,16 +2359,14 @@ function computeRoute(lat, lng, targetKm) {
         const actualKm = allLegs.reduce((s, l) => s + l.distance.value, 0) / 1000;
         const errorKm  = Math.abs(actualKm - targetKm);
 
-        // ±500m以内 or 試行上限に達したら確定
         if (errorKm <= TOLERANCE_KM || attempt_count >= MAX_ATTEMPTS) {
           renderRoute(result, targetKm, actualKm);
           resolve();
           return;
         }
 
-        // 距離が離れている → スケールを比率で補正して再試行
         scaleFactor *= (targetKm / actualKm);
-        scaleFactor = Math.max(0.4, Math.min(3.0, scaleFactor));
+        scaleFactor = Math.max(0.2, Math.min(4.0, scaleFactor));
 
         tryRoute();
       });
