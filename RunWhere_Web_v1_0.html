@@ -297,7 +297,7 @@ body {
 
 .search-input {
   flex:1; border:none; outline:none; background:transparent;
-  font-size: 13px; font-family: inherit; color:var(--text);
+  font-size: 13px; font-family: 'Noto Sans JP', 'Inter', sans-serif; color:var(--text);
   padding: 10px 0;
 }
 
@@ -983,16 +983,16 @@ body {
   }
   .bs-overlay.show { opacity: 1; pointer-events: all; }
 
-  /* ── ボトムシート本体：グラデーション背景 ── */
+  /* ── ボトムシート本体 ── */
   .bottom-sheet {
     display: flex;
     flex-direction: column;
     position: fixed;
     left: 0; right: 0; bottom: 0;
     z-index: 500;
-    background: linear-gradient(160deg, #4f46e5 0%, #7c3aed 40%, #2563eb 100%);
+    background: white;
     border-radius: 20px 20px 0 0;
-    box-shadow: 0 -8px 40px rgba(79,70,229,.35);
+    box-shadow: 0 -8px 40px rgba(0,0,0,.18);
     transition: transform .38s cubic-bezier(.32,1,.5,1);
     will-change: transform;
     max-height: 92dvh;
@@ -1011,27 +1011,29 @@ body {
     align-items: center; gap: 6px;
     flex-shrink: 0;
     cursor: grab;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6, #a78bfa);
+    border-radius: 20px 20px 0 0;
   }
 
   .bs-handle {
     width: 36px; height: 4px;
-    background: rgba(255,255,255,.35); border-radius: 2px;
+    background: rgba(255,255,255,.5); border-radius: 2px;
   }
 
   /* ── ピーク時：検索バー + モードトグル ── */
   .bs-peek-row {
     display: flex; align-items: center; gap: 8px;
-    padding: 0 14px 10px;
+    padding: 0 14px 12px;
     flex-shrink: 0;
   }
 
   .bs-search-mini {
     flex: 1;
     display: flex; align-items: center; gap: 8px;
-    background: rgba(255,255,255,.15);
-    border: 1px solid rgba(255,255,255,.25);
+    background: rgba(255,255,255,.2);
+    border: 1px solid rgba(255,255,255,.3);
     border-radius: 12px; padding: 10px 12px;
-    font-size: 13px; color: rgba(255,255,255,.8);
+    font-size: 13px; color: rgba(255,255,255,.85);
     cursor: pointer;
   }
 
@@ -1043,7 +1045,7 @@ body {
 
   .bs-mode-mini {
     display: flex;
-    background: var(--surface2); border: 1px solid var(--border2);
+    background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
     border-radius: 12px; padding: 3px; gap: 2px; flex-shrink: 0;
   }
 
@@ -1054,8 +1056,8 @@ body {
     transition: all .18s;
   }
 
-  .bs-mode-btn.active-run  { background: var(--grad-run); box-shadow: 0 2px 8px rgba(99,102,241,.35); }
-  .bs-mode-btn.active-bike { background: var(--grad-bike); box-shadow: 0 2px 8px rgba(244,114,182,.35); }
+  .bs-mode-btn.active-run  { background: rgba(255,255,255,.3); box-shadow: 0 2px 8px rgba(0,0,0,.15); }
+  .bs-mode-btn.active-bike { background: rgba(255,255,255,.3); box-shadow: 0 2px 8px rgba(0,0,0,.15); }
 
   /* ── スクロール可能コンテンツ ── */
   .bs-scroll {
@@ -1071,40 +1073,40 @@ body {
 
   .bs-section-title {
     font-size: 10px; font-weight: 700; letter-spacing: 1px;
-    color: rgba(255,255,255,.55); text-transform: uppercase;
+    color: var(--text3); text-transform: uppercase;
     margin-bottom: 8px;
   }
 
   /* ── 検索入力（展開時） ── */
   .bs-search-full {
     display: flex; align-items: center; gap: 8px;
-    background: rgba(255,255,255,.15);
-    border: 1px solid rgba(255,255,255,.25);
+    background: white; border: 1px solid var(--border2);
     border-radius: 12px; padding: 0 12px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
     margin-bottom: 8px;
   }
 
   .bs-search-full svg {
     width: 15px; height: 15px;
-    stroke: rgba(255,255,255,.7); fill: none; stroke-width: 2;
+    stroke: var(--text3); fill: none; stroke-width: 2;
     stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0;
   }
 
   .bs-search-full input {
     flex: 1; border: none; outline: none; background: transparent;
-    font-size: 14px; font-family: inherit; color: white;
+    font-size: 14px; font-family: inherit; color: var(--text);
     padding: 12px 0;
   }
 
-  .bs-search-full input::placeholder { color: rgba(255,255,255,.5); }
+  .bs-search-full input::placeholder { color: var(--text3); }
 
   /* ── GPS ボタン ── */
   .bs-gps-btn {
     width: 100%; padding: 10px;
-    background: rgba(255,255,255,.12); border: 1px dashed rgba(255,255,255,.3);
+    background: rgba(99,102,241,.06); border: 1px dashed rgba(99,102,241,.3);
     border-radius: 10px; cursor: pointer;
     font-family: inherit; font-size: 13px; font-weight: 500;
-    color: white;
+    color: #6366f1;
     display: flex; align-items: center; justify-content: center; gap: 6px;
     margin-bottom: 6px;
   }
@@ -1114,31 +1116,31 @@ body {
   /* ── 距離スライダー ── */
   .bs-dist-row {
     display: flex; align-items: center; gap: 10px;
-    background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
+    background: var(--surface2); border: 1px solid var(--border);
     border-radius: 14px; padding: 12px 14px;
   }
 
   .bs-dist-num {
-    font-size: 36px; font-weight: 700; color: white;
+    font-size: 36px; font-weight: 700; color: #6366f1;
     letter-spacing: -1px; min-width: 64px; text-align: center;
     line-height: 1;
   }
 
-  .bs-dist-unit { font-size: 12px; font-weight: 600; color: rgba(255,255,255,.6); margin-top: 4px; }
+  .bs-dist-unit { font-size: 12px; font-weight: 600; color: var(--text3); margin-top: 4px; }
 
   .bs-dist-right { flex: 1; }
 
   .bs-dist-slider {
     width: 100%; height: 4px;
     -webkit-appearance: none; appearance: none;
-    background: linear-gradient(to right, white var(--pct, 20%), rgba(255,255,255,.25) var(--pct, 20%));
+    background: linear-gradient(to right, #6366f1 var(--pct, 20%), #e5e7eb var(--pct, 20%));
     border-radius: 2px; outline: none; cursor: pointer; margin-bottom: 8px;
   }
 
   .bs-dist-slider::-webkit-slider-thumb {
     -webkit-appearance: none; width: 20px; height: 20px;
-    background: white; border: 3px solid rgba(255,255,255,.8);
-    border-radius: 50%; box-shadow: 0 2px 8px rgba(0,0,0,.2);
+    background: white; border: 3px solid #6366f1;
+    border-radius: 50%; box-shadow: 0 2px 8px rgba(99,102,241,.3);
     cursor: pointer;
   }
 
@@ -1146,13 +1148,13 @@ body {
 
   .bs-dist-preset {
     flex: 1; padding: 5px 0; text-align: center;
-    background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
+    background: white; border: 1px solid var(--border2);
     border-radius: 7px; font-size: 11px; font-weight: 600;
-    color: rgba(255,255,255,.8); cursor: pointer; transition: all .15s;
+    color: var(--text2); cursor: pointer; transition: all .15s;
   }
 
   .bs-dist-preset.active,
-  .bs-dist-preset:active { background: white; color: #6366f1; border-color: white; }
+  .bs-dist-preset:active { background: #6366f1; color: white; border-color: #6366f1; }
 
   /* ── ペース／速度入力 ── */
   .bs-pace-row {
@@ -1160,20 +1162,20 @@ body {
   }
 
   .bs-pace-input {
-    width: 52px; background: rgba(255,255,255,.15);
-    border: 1px solid rgba(255,255,255,.3); border-radius: 10px;
+    width: 52px; background: var(--surface2);
+    border: 1px solid var(--border2); border-radius: 10px;
     padding: 8px 6px; font-size: 20px; font-weight: 700;
-    font-family: inherit; color: white; outline: none; text-align: center;
+    font-family: inherit; color: var(--text); outline: none; text-align: center;
   }
 
-  .bs-pace-sep { font-size: 20px; font-weight: 300; color: rgba(255,255,255,.6); }
-  .bs-pace-unit { font-size: 12px; font-weight: 500; color: rgba(255,255,255,.6); }
+  .bs-pace-sep { font-size: 20px; font-weight: 300; color: var(--text3); }
+  .bs-pace-unit { font-size: 12px; font-weight: 500; color: var(--text3); }
 
   .bs-pace-result {
     display: flex; align-items: center; justify-content: space-between;
     padding: 10px 14px;
-    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
-    border-radius: 10px;
+    background: linear-gradient(135deg,rgba(99,102,241,.07),rgba(139,92,246,.07));
+    border: 1px solid rgba(99,102,241,.15); border-radius: 10px;
   }
 
   /* ── オプション（横2列グリッド） ── */
@@ -1182,32 +1184,31 @@ body {
   }
 
   .bs-opt {
-    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
+    background: var(--surface2); border: 1px solid var(--border);
     border-radius: 12px; padding: 10px 10px 8px;
     cursor: pointer; transition: all .18s; text-align: left;
   }
 
   .bs-opt.sel {
-    background: rgba(255,255,255,.25);
-    border-color: rgba(255,255,255,.5);
-    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    background: linear-gradient(135deg,rgba(99,102,241,.1),rgba(139,92,246,.1));
+    border-color: rgba(99,102,241,.4);
   }
 
   .bs-opt-icon { font-size: 18px; margin-bottom: 4px; }
-  .bs-opt-title { font-size: 11px; font-weight: 600; color: white; line-height: 1.3; }
-  .bs-opt-desc  { font-size: 10px; color: rgba(255,255,255,.55); margin-top: 1px; line-height: 1.3; }
+  .bs-opt-title { font-size: 11px; font-weight: 600; color: var(--text); line-height: 1.3; }
+  .bs-opt-desc  { font-size: 10px; color: var(--text3); margin-top: 1px; line-height: 1.3; }
 
   .bs-opt-wide {
     grid-column: 1 / -1;
     display: flex; align-items: center; gap: 10px;
-    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.15);
+    background: var(--surface2); border: 1px solid var(--border);
     border-radius: 12px; padding: 10px 12px;
     cursor: pointer; transition: all .18s;
   }
 
   .bs-opt-wide.sel {
-    background: rgba(255,255,255,.25);
-    border-color: rgba(255,255,255,.5);
+    background: linear-gradient(135deg,rgba(99,102,241,.1),rgba(139,92,246,.1));
+    border-color: rgba(99,102,241,.4);
   }
 
   /* ── ルート情報（生成後） ── */
@@ -1217,53 +1218,55 @@ body {
   }
 
   .bs-stat {
-    background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.2);
+    background: var(--surface2); border: 1px solid var(--border);
     border-radius: 12px; padding: 10px 8px; text-align: center;
   }
 
-  .bs-stat-val  { font-size: 22px; font-weight: 700; color: white; letter-spacing: -1px; line-height: 1; }
-  .bs-stat-unit { font-size: 9px; font-weight: 600; color: rgba(255,255,255,.55); text-transform: uppercase; margin-top: 2px; }
-  .bs-stat-lbl  { font-size: 10px; color: rgba(255,255,255,.55); margin-top: 3px; }
+  .bs-stat-val  { font-size: 22px; font-weight: 700; color: #6366f1; letter-spacing: -1px; line-height: 1; }
+  .bs-stat-unit { font-size: 9px; font-weight: 600; color: var(--text3); text-transform: uppercase; margin-top: 2px; }
+  .bs-stat-lbl  { font-size: 10px; color: var(--text3); margin-top: 3px; }
 
   /* ── エクスポートボタン ── */
   .bs-export-btn {
     width: 100%; padding: 13px;
-    background: rgba(255,255,255,.2); border: 1px solid rgba(255,255,255,.3);
-    color: white; border-radius: 12px;
+    background: linear-gradient(135deg,#6366f1,#8b5cf6);
+    color: white; border: none; border-radius: 12px;
     font-family: inherit; font-size: 13px; font-weight: 600;
     cursor: pointer;
     display: flex; align-items: center; justify-content: center; gap: 8px;
+    box-shadow: 0 4px 12px rgba(99,102,241,.3);
     margin-bottom: 8px;
   }
 
   /* ── スタートバッジ ── */
   .bs-start-badge {
     display: none; align-items: center; gap: 6px;
-    padding: 8px 12px;
-    background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.25);
-    border-radius: 10px; font-size: 12px; font-weight: 500; color: white;
+    padding: 8px 12px; background: white;
+    border: 1px solid rgba(99,102,241,.2); border-radius: 10px;
+    font-size: 12px; font-weight: 500; color: #6366f1;
     margin-top: 6px;
   }
 
   .bs-start-badge.show { display: flex; }
-  .bs-start-badge-text { flex: 1; line-height: 1.4; font-size: 11px; color: rgba(255,255,255,.8); }
-  .bs-start-badge-clear { cursor: pointer; color: rgba(255,255,255,.5); font-size: 14px; }
+  .bs-start-badge-text { flex: 1; line-height: 1.4; font-size: 11px; color: var(--text2); }
+  .bs-start-badge-clear { cursor: pointer; color: var(--text3); font-size: 14px; }
 
-  /* ── マップ上部中央：生成ボタン ── */
+  /* ── マップ上 生成ボタン（ボトムシート上・ピル型） ── */
   .bs-map-gen-btn {
     position: fixed;
-    top: max(16px, env(safe-area-inset-top));
+    bottom: max(108px, calc(env(safe-area-inset-bottom) + 100px));
     left: 50%; transform: translateX(-50%);
-    z-index: 450;
-    padding: 12px 24px;
+    z-index: 600;
+    padding: 14px 28px;
     background: linear-gradient(135deg,#6366f1,#8b5cf6);
     color: white; border: none; border-radius: 50px;
-    font-family: inherit; font-size: 14px; font-weight: 700;
+    font-family: inherit; font-size: 15px; font-weight: 700;
     cursor: pointer; letter-spacing: .3px;
-    display: flex; align-items: center; gap: 7px;
-    box-shadow: 0 4px 20px rgba(99,102,241,.5);
+    display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 6px 24px rgba(99,102,241,.55);
     transition: all .18s;
     white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
   }
 
   .bs-map-gen-btn:active { transform: translateX(-50%) scale(.95); }
@@ -1271,47 +1274,12 @@ body {
 
 /* デスクトップではマップ上ボタン非表示 */
 .bs-map-gen-btn { display: none; }
-}
 
 /* ── MOBILE スクロールヒント ─────────────────────────── */
-.mobile-scroll-hint {
-  display: none;
-  text-align: center;
-  font-size: 10px;
-  color: var(--text3);
-  padding: 2px 0 4px;
-  letter-spacing: .3px;
-  flex-shrink: 0;
-  width: 100%;
-}
+.mobile-scroll-hint { display: none; }
 
-@media (max-width: 700px) {
-  .mobile-scroll-hint { display: block; }
-}
-
-/* ── MOBILE 生成ボタン固定 ───────────────────────────── */
-@media (max-width: 700px) {
-  /* 画面下部に固定 */
-  .gen-btn-mobile-fixed {
-    position: fixed;
-    bottom: max(12px, env(safe-area-inset-bottom));
-    left: 12px; right: 12px;
-    z-index: 500;
-    padding: 15px;
-    background: var(--grad-btn);
-    color: white; border: none; border-radius: 14px;
-    font-family: inherit; font-size: 15px; font-weight: 700;
-    letter-spacing: .3px; cursor: pointer;
-    box-shadow: 0 6px 24px rgba(99,102,241,.45);
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    transition: all .18s;
-  }
-
-  .gen-btn-mobile-fixed:active { transform: scale(.97); }
-}
-
-/* デスクトップでは固定ボタン非表示 */
-.gen-btn-mobile-fixed { display: none; }
+/* ── MOBILE 旧固定生成ボタン：使わない ──────────────── */
+.gen-btn-mobile-fixed { display: none !important; }
 
 .cafe-found-badge {
   padding: 3px 8px;
@@ -1414,14 +1382,13 @@ body {
 
     <!-- パネル -->
     <div class="panel">
-      <div class="mobile-scroll-hint">← カードを横にスワイプ →</div>
 
       <!-- スタート地点 -->
       <div class="card search-card">
         <div class="card-label" data-i18n="start_point">スタート地点</div>
         <div class="search-input-wrap">
           <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input type="text" id="location-search" class="search-input" placeholder="駅名・住所・施設名で検索..." autocomplete="off">
+          <input type="text" id="location-search" class="search-input" placeholder="駅名・住所・施設名で検索..." autocomplete="off" lang="ja">
         </div>
         <button class="gps-btn" onclick="useCurrentLocation()">
           <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
@@ -1596,7 +1563,6 @@ body {
         <div class="map-ctrl" title="拡大" onclick="gmap.setZoom(gmap.getZoom()+1)">＋</div>
         <div class="map-ctrl" title="縮小" onclick="gmap.setZoom(gmap.getZoom()-1)">－</div>
         <div class="map-ctrl" title="現在地" onclick="centerOnUser()">📍</div>
-        <div class="map-ctrl" title="ルートをフィット" onclick="fitRoute()">🎯</div>
         <div class="map-ctrl map-ctrl-preview" id="map-preview-btn" title="プレビュー" onclick="togglePreview()">▶</div>
         <div class="map-ctrl" title="クリア" onclick="clearRoute()">🗑️</div>
       </div>
@@ -1779,6 +1745,31 @@ body {
             <div class="bs-opt-desc" data-i18n="opt_cafe_d">評価4以上のカフェを経由</div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- ペース / 速度設定 -->
+    <div class="bs-section">
+      <div class="bs-section-title" id="bs-pace-label">ペース設定</div>
+      <!-- ランニング -->
+      <div id="bs-run-row" class="bs-pace-row">
+        <div class="bs-pace-box">
+          <input type="number" id="bs-pace-min" class="bs-pace-input" value="6" min="3" max="20" oninput="bsSyncPace()">
+          <span class="bs-pace-sep">:</span>
+          <input type="number" id="bs-pace-sec" class="bs-pace-input" value="00" min="0" max="59" oninput="bsSyncPace()">
+          <span class="bs-pace-unit">分/km</span>
+        </div>
+      </div>
+      <!-- サイクリング -->
+      <div id="bs-bike-row" class="bs-pace-row" style="display:none">
+        <div class="bs-pace-box">
+          <input type="number" id="bs-bike-speed" class="bs-pace-input bs-pace-input-wide" value="20" min="5" max="60" oninput="bsSyncSpeed()">
+          <span class="bs-pace-unit">km/h</span>
+        </div>
+      </div>
+      <div class="bs-pace-result">
+        <span class="bs-pace-result-label" data-i18n="est_time">目安タイム</span>
+        <span class="bs-pace-result-val" id="bs-pace-result-val">—</span>
       </div>
     </div>
 
