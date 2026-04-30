@@ -1378,6 +1378,44 @@ body {
     margin-bottom: 8px;
   }
 
+  /* ── デバイス別エクスポートグリッド ── */
+  .bs-export-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;
+    margin-bottom: 8px;
+  }
+
+  .bs-garmin-tip {
+    font-size: 10px; color: var(--text3); line-height: 1.5; padding: 2px;
+  }
+
+  /* ── マップナビボタン ── */
+  .bs-nav-btns {
+    display: flex;
+    margin-top: 10px;
+  }
+
+  .bs-nav-btn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 12px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; cursor: pointer; font-family: inherit;
+    transition: all .18s; text-align: left;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .bs-nav-btn:active { transform: scale(.96); }
+
+  .bs-nav-google { border-color: rgba(52,168,83,.3); background: rgba(52,168,83,.06); }
+  .bs-nav-apple  { border-color: rgba(0,122,255,.3); background: rgba(0,122,255,.06); }
+
+  .bs-nav-icon { font-size: 20px; flex-shrink: 0; }
+
+  .bs-nav-label {
+    font-size: 12px; font-weight: 600; color: var(--text); line-height: 1.4;
+  }
+
+  .bs-nav-label small { font-size: 10px; font-weight: 400; color: var(--text3); }
+
   /* ── スタートバッジ ── */
   .bs-start-badge {
     display: none; align-items: center; gap: 6px;
@@ -1580,6 +1618,7 @@ body {
           <div class="preset" onclick="setDist(15)">15K</div>
           <div class="preset" onclick="setDist(21)">HM</div>
           <div class="preset" onclick="setDist(42)">FM</div>
+          <div class="preset" onclick="setDist(161)">100mi</div>
         </div>
       </div>
 
@@ -1765,13 +1804,14 @@ body {
         </div>
         <div class="bs-dist-right">
           <input type="range" class="bs-dist-slider" id="bs-dist-slider"
-            min="1" max="42" value="5" oninput="bsUpdateDist(this.value)">
+            min="1" max="161" value="5" oninput="bsUpdateDist(this.value)">
           <div class="bs-dist-presets">
             <div class="bs-dist-preset" onclick="bsSetDist(5)">5K</div>
             <div class="bs-dist-preset active" onclick="bsSetDist(10)">10K</div>
             <div class="bs-dist-preset" onclick="bsSetDist(15)">15K</div>
             <div class="bs-dist-preset" onclick="bsSetDist(21)">HM</div>
             <div class="bs-dist-preset" onclick="bsSetDist(42)">FM</div>
+            <div class="bs-dist-preset" onclick="bsSetDist(161)">100mi</div>
           </div>
         </div>
       </div>
@@ -1884,6 +1924,13 @@ body {
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         <span data-i18n="gpx_download">GPXダウンロード</span>
       </button>
+      <div class="bs-garmin-tip" data-i18n="garmin_tip">💡 Garmin ConnectにドラッグするとGarminデバイスへ転送できます</div>
+      <div class="bs-nav-btns">
+        <button class="bs-nav-btn bs-nav-google" onclick="openGoogleMapsRoute()">
+          <span class="bs-nav-icon">🟢</span>
+          <span class="bs-nav-label">Google マップ<br><small>でナビ開始</small></span>
+        </button>
+      </div>
     </div>
 
   </div><!-- /bs-scroll -->
@@ -3523,6 +3570,67 @@ function notify(msg, type='info') {
   const el = document.getElementById('notif');
   el.textContent = msg; el.className = `notif ${type} show`;
   clearTimeout(_nt); _nt = setTimeout(() => el.classList.remove('show'), 4200);
+}
+
+// ─── GOOGLE MAPS NAVIGATION ───────────────
+function openGoogleMapsRoute() {
+  if (!currentRoute || !currentRoute.path || currentRoute.path.length === 0) {
+    notify('先にルートを生成してください', 'error'); return;
+  }
+  if (!userLocation) { notify('スタート地点が設定されていません', 'error'); return; }
+
+  const path = currentRoute.path;
+  const MAX_WP = 8; // 中間経由地最大8点（スタート・ゴール含め10点以内）
+
+  // 均等間引き
+  function samplePoints(pts, n) {
+    if (pts.length <= n) return pts;
+    const result = [];
+    for (let i = 0; i < n; i++) {
+      const idx = Math.round(i * (pts.length - 1) / (n - 1));
+      result.push(pts[idx]);
+    }
+    return result;
+  }
+
+  function getLat(p) { return typeof p.lat === 'function' ? p.lat() : p.lat; }
+  function getLng(p) { return typeof p.lng === 'function' ? p.lng() : p.lng; }
+
+  const mid = path.slice(1, path.length - 1);
+  const sampled = samplePoints(mid, MAX_WP);
+
+  const origin = `${userLocation.lat},${userLocation.lng}`;
+  const waypoints = sampled.map(p =>
+    `${getLat(p).toFixed(6)},${getLng(p).toFixed(6)}`
+  ).join('/');
+  const dest = origin; // ループ：ゴール＝スタート
+
+  const url = waypoints
+    ? `https://www.google.com/maps/dir/${origin}/${waypoints}/${dest}`
+    : `https://www.google.com/maps/dir/${origin}/${dest}`;
+
+  window.open(url, '_blank');
+  notify('🟢 Google マップを開いています...', 'success');
+}
+
+// ─── APPLE MAPS NAVIGATION ────────────────
+function openAppleMapsRoute() {
+  if (!currentRoute || !currentRoute.path || currentRoute.path.length === 0) {
+    notify('先にルートを生成してください', 'error'); return;
+  }
+  if (!userLocation) { notify('スタート地点が設定されていません', 'error'); return; }
+
+  const lat = userLocation.lat.toFixed(6);
+  const lng = userLocation.lng.toFixed(6);
+
+  // Apple Maps：スタート地点を目的地として徒歩ナビ
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const url = isIOS
+    ? `maps://?saddr=現在地&daddr=${lat},${lng}&dirflg=w`
+    : `https://maps.apple.com/?saddr=&daddr=${lat},${lng}&dirflg=w`;
+
+  window.open(url, '_blank');
+  notify('🗺️ Apple マップを開いています...', 'success');
 }
 
 // ─── PWA: Service Worker 登録 ─────────────
