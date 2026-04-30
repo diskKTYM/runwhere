@@ -883,8 +883,436 @@ body {
 }
 
 /* ══════════════════════════════════════════════════════════
-   AI GENERATING INDICATOR
+   DESKTOP / iPAD LAYOUT（700px以上）
 ══════════════════════════════════════════════════════════ */
+@media (min-width: 701px) {
+
+  /* ボトムシート・トップバーを非表示 */
+  .bottom-sheet { display: none !important; }
+  .top-bar      { display: none !important; }
+
+  /* サイドバー */
+  .desktop-sidebar {
+    position: fixed;
+    top: 0; left: 0; bottom: 0;
+    width: 320px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 4px 0 24px rgba(0,0,0,.06);
+  }
+
+  /* サイドバーヘッダー */
+  .desktop-header {
+    background: var(--grad-hero);
+    padding: 20px 20px 16px;
+    flex-shrink: 0;
+  }
+
+  .desktop-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+  }
+
+  .desktop-logo img {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    object-fit: cover;
+  }
+
+  .desktop-logo-text {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px; color: white;
+    letter-spacing: -.3px;
+    line-height: 1;
+  }
+
+  .desktop-logo-badge {
+    background: var(--grad-gold);
+    color: var(--ink);
+    font-size: 9px; font-weight: 700;
+    padding: 2px 6px; border-radius: 4px;
+    letter-spacing: .5px;
+  }
+
+  .desktop-tagline {
+    font-size: 11px;
+    color: rgba(255,255,255,.55);
+    letter-spacing: .5px;
+    margin-bottom: 14px;
+  }
+
+  /* デスクトップ検索 */
+  .desktop-search {
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,.12);
+    border: 1px solid rgba(255,255,255,.2);
+    border-radius: 12px; padding: 0 12px;
+    margin-bottom: 8px;
+  }
+
+  .desktop-search svg {
+    width: 14px; height: 14px;
+    stroke: rgba(255,255,255,.5); fill: none;
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    flex-shrink: 0;
+  }
+
+  .desktop-search input {
+    flex: 1; border: none; outline: none;
+    background: transparent;
+    font-size: 13px; font-family: inherit;
+    color: white; padding: 11px 0;
+  }
+
+  .desktop-search input::placeholder { color: rgba(255,255,255,.4); }
+
+  .desktop-gps-btn {
+    width: 100%; padding: 9px;
+    background: rgba(255,255,255,.08);
+    border: 1px dashed rgba(255,255,255,.25);
+    border-radius: 10px;
+    cursor: pointer; font-family: inherit;
+    font-size: 12px; font-weight: 500;
+    color: rgba(255,255,255,.7);
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    margin-bottom: 4px; transition: all .18s;
+  }
+
+  .desktop-gps-btn:hover { background: rgba(255,255,255,.14); }
+
+  .desktop-start-badge {
+    display: none; align-items: center; gap: 6px;
+    padding: 7px 10px;
+    background: rgba(13,148,136,.2);
+    border: 1px solid rgba(13,148,136,.4);
+    border-radius: 8px;
+    font-size: 11px; color: rgba(255,255,255,.8);
+    margin-top: 4px;
+  }
+
+  .desktop-start-badge.show { display: flex; }
+  .desktop-start-badge-text { flex: 1; font-size: 11px; line-height: 1.4; }
+  .desktop-start-badge-clear { cursor: pointer; color: rgba(255,255,255,.4); }
+
+  /* モード切替 */
+  .desktop-mode {
+    display: flex;
+    background: rgba(255,255,255,.08);
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 10px; padding: 3px; gap: 3px;
+    margin-bottom: 0;
+  }
+
+  .desktop-mode-btn {
+    flex: 1; padding: 7px;
+    border: none; border-radius: 7px;
+    background: transparent;
+    cursor: pointer; font-family: inherit;
+    font-size: 12px; font-weight: 600;
+    color: rgba(255,255,255,.6);
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    transition: all .18s;
+  }
+
+  .desktop-mode-btn.active {
+    background: rgba(255,255,255,.2);
+    color: white;
+    box-shadow: 0 2px 6px rgba(0,0,0,.2);
+  }
+
+  /* スクロールエリア */
+  .desktop-scroll {
+    flex: 1; overflow-y: auto; padding: 16px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .desktop-scroll::-webkit-scrollbar { width: 3px; }
+  .desktop-scroll::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* セクション */
+  .ds-section { margin-bottom: 18px; }
+
+  .ds-section-title {
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 1.2px; color: var(--ink3);
+    text-transform: uppercase; margin-bottom: 8px;
+  }
+
+  /* スポット数 */
+  .ds-spots-grid {
+    display: grid; grid-template-columns: repeat(4,1fr); gap: 5px;
+  }
+
+  .ds-spot-btn {
+    padding: 8px 4px;
+    background: var(--paper);
+    border: 1.5px solid var(--border2);
+    border-radius: 10px; text-align: center;
+    cursor: pointer; transition: all .18s;
+  }
+
+  .ds-spot-btn.active {
+    background: var(--ink); border-color: var(--ink); color: white;
+  }
+
+  .ds-spot-num {
+    font-size: 20px; font-weight: 700;
+    font-family: 'DM Serif Display', serif;
+    display: block; line-height: 1;
+  }
+
+  .ds-spot-lbl {
+    font-size: 9px; font-weight: 600;
+    letter-spacing: .3px; color: var(--ink3); display: block; margin-top: 2px;
+  }
+
+  .ds-spot-btn.active .ds-spot-lbl { color: rgba(255,255,255,.65); }
+
+  /* スポットタイプ */
+  .ds-type-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 5px;
+  }
+
+  .ds-type-card {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px;
+    background: var(--paper); border: 1.5px solid var(--border2);
+    border-radius: 10px; cursor: pointer; transition: all .18s;
+  }
+
+  .ds-type-card.active {
+    background: rgba(15,23,42,.05); border-color: var(--ink);
+  }
+
+  .ds-type-icon { font-size: 16px; flex-shrink: 0; }
+  .ds-type-name { font-size: 11px; font-weight: 600; color: var(--ink); }
+  .ds-type-desc { font-size: 9px; color: var(--ink3); line-height: 1.3; }
+
+  /* 距離 */
+  .ds-dist-row {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--paper); border: 1.5px solid var(--border2);
+    border-radius: 12px; padding: 10px 12px;
+  }
+
+  .ds-dist-num {
+    font-size: 32px; font-weight: 700;
+    font-family: 'DM Serif Display', serif;
+    color: var(--ink); letter-spacing: -1px; line-height: 1;
+    min-width: 50px; text-align: center;
+  }
+
+  .ds-dist-unit {
+    font-size: 10px; font-weight: 600;
+    color: var(--ink3); text-transform: uppercase;
+  }
+
+  .ds-dist-right { flex: 1; }
+
+  .ds-slider {
+    width: 100%; height: 3px;
+    -webkit-appearance: none; appearance: none;
+    background: linear-gradient(to right, var(--ink) var(--pct,10%), #e2e8f0 var(--pct,10%));
+    border-radius: 2px; outline: none; cursor: pointer; margin-bottom: 7px;
+  }
+
+  .ds-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 18px; height: 18px;
+    background: white; border: 2.5px solid var(--ink);
+    border-radius: 50%; box-shadow: 0 2px 6px rgba(0,0,0,.12); cursor: pointer;
+  }
+
+  .ds-presets { display: flex; gap: 4px; }
+
+  .ds-preset {
+    flex: 1; padding: 5px 0; text-align: center;
+    background: white; border: 1px solid var(--border2);
+    border-radius: 6px; font-size: 10px; font-weight: 600;
+    color: var(--ink2); cursor: pointer; transition: all .15s;
+  }
+
+  .ds-preset.active { background: var(--ink); color: white; border-color: var(--ink); }
+
+  /* ペース */
+  .ds-pace-row {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--paper); border: 1.5px solid var(--border2);
+    border-radius: 12px; padding: 10px 12px;
+  }
+
+  /* オプション */
+  .ds-opt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+
+  .ds-opt-card {
+    padding: 9px 9px 7px;
+    background: var(--paper); border: 1.5px solid var(--border2);
+    border-radius: 10px; cursor: pointer; transition: all .18s;
+  }
+
+  .ds-opt-card.active {
+    background: rgba(15,23,42,.04); border-color: var(--ink);
+  }
+
+  .ds-opt-icon { font-size: 16px; margin-bottom: 3px; }
+  .ds-opt-name { font-size: 11px; font-weight: 600; color: var(--ink); }
+  .ds-opt-desc { font-size: 9px; color: var(--ink3); margin-top: 1px; }
+
+  /* 生成ボタン */
+  .ds-gen-btn {
+    width: 100%; padding: 14px;
+    background: var(--grad-gold); color: var(--ink);
+    border: none; border-radius: 12px;
+    font-family: inherit; font-size: 14px; font-weight: 700;
+    cursor: pointer; letter-spacing: .3px;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    box-shadow: 0 4px 16px rgba(245,158,11,.4);
+    transition: all .18s;
+  }
+
+  .ds-gen-btn:hover { box-shadow: 0 6px 24px rgba(245,158,11,.5); transform: translateY(-1px); }
+
+  /* ルート情報（デスクトップ） */
+  .ds-result {
+    display: none;
+    margin-top: 16px;
+  }
+
+  .ds-route-card {
+    background: var(--ink); border-radius: 14px;
+    padding: 14px; margin-bottom: 10px; color: white;
+  }
+
+  .ds-route-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 16px; color: white; margin-bottom: 4px;
+  }
+
+  .ds-route-desc {
+    font-size: 11px; color: rgba(255,255,255,.6);
+    line-height: 1.6; margin-bottom: 10px;
+  }
+
+  .ds-stats {
+    display: grid; grid-template-columns: repeat(3,1fr);
+    gap: 6px; margin-bottom: 10px;
+  }
+
+  .ds-stat {
+    text-align: center; padding: 8px 4px;
+    background: rgba(255,255,255,.08); border-radius: 8px;
+  }
+
+  .ds-stat-val {
+    font-size: 18px; font-weight: 700; color: var(--gold);
+    font-family: 'DM Serif Display', serif;
+    display: block; line-height: 1;
+  }
+
+  .ds-stat-unit { font-size: 8px; color: rgba(255,255,255,.4); text-transform: uppercase; }
+  .ds-stat-lbl  { font-size: 9px; color: rgba(255,255,255,.5); margin-top: 2px; }
+
+  .ds-spot-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+
+  .ds-spot-tag {
+    padding: 3px 8px;
+    background: rgba(255,255,255,.1); border-radius: 20px;
+    font-size: 10px; color: rgba(255,255,255,.75);
+  }
+
+  .ds-export-row { display: flex; gap: 6px; }
+
+  .ds-export-btn {
+    flex: 1; padding: 9px;
+    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.2);
+    border-radius: 9px; color: white; font-family: inherit;
+    font-size: 11px; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 5px;
+    transition: all .18s;
+  }
+
+  .ds-export-btn.primary {
+    background: var(--grad-gold); color: var(--ink); border-color: transparent;
+  }
+
+  /* シェアカード */
+  .ds-share-card {
+    background: var(--paper); border: 1.5px solid var(--border2);
+    border-radius: 12px; padding: 12px; margin-top: 8px;
+  }
+
+  .ds-share-url {
+    font-size: 10px; color: var(--ink2);
+    background: white; border: 1px solid var(--border2);
+    border-radius: 7px; padding: 7px 9px;
+    word-break: break-all; margin-bottom: 8px; line-height: 1.5;
+  }
+
+  .ds-share-btns { display: flex; gap: 5px; }
+
+  .ds-share-btn {
+    flex: 1; padding: 8px;
+    background: var(--ink); color: white; border: none;
+    border-radius: 8px; font-family: inherit; font-size: 11px; font-weight: 600;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+  }
+
+  .ds-share-btn.secondary {
+    background: var(--paper); color: var(--ink);
+    border: 1.5px solid var(--border2);
+  }
+
+  /* 言語・履歴（デスクトップ下部） */
+  .desktop-footer {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .ds-lang-select {
+    background: var(--paper); border: 1.5px solid var(--border2);
+    border-radius: 8px; color: var(--ink2);
+    font-size: 11px; font-weight: 700; font-family: inherit;
+    padding: 6px 8px; cursor: pointer; outline: none;
+  }
+
+  .ds-history-btn {
+    padding: 7px 12px;
+    background: var(--paper); border: 1.5px solid var(--border2);
+    border-radius: 8px; cursor: pointer;
+    font-size: 12px; font-weight: 600; color: var(--ink2);
+    font-family: inherit; transition: all .18s;
+    display: flex; align-items: center; gap: 5px;
+  }
+
+  .ds-history-btn:hover { background: var(--ink); color: white; border-color: var(--ink); }
+
+  /* マップをサイドバーの右に */
+  #map {
+    left: 320px !important;
+  }
+
+  .map-ctrl-group {
+    right: 14px;
+  }
+
+  /* 標高・通知 */
+  .elev-bar { left: 320px; }
+
+  .notif {
+    left: 336px !important;
+    right: 16px !important;
+    bottom: 24px;
+  }
+}
+
 .ai-generating {
   display: flex; align-items: center; gap: 8px;
   padding: 12px 14px;
@@ -935,6 +1363,252 @@ body {
   <div class="map-ctrl" onclick="centerOnUser()">📍</div>
   <div class="map-ctrl" id="preview-btn" onclick="togglePreview()">▶</div>
 </div>
+
+<!-- ══════════════════════════════════════════════════════
+     DESKTOP / iPAD SIDEBAR
+══════════════════════════════════════════════════════ -->
+<div class="desktop-sidebar">
+
+  <!-- ヘッダー -->
+  <div class="desktop-header">
+    <div class="desktop-logo">
+      <img src="icon-192.png" alt="RunWhere">
+      <div>
+        <div class="desktop-logo-text">RunWhere <span class="desktop-logo-badge">2.0</span></div>
+      </div>
+    </div>
+    <div class="desktop-tagline" data-i18n="tagline">その街を走って観光する</div>
+
+    <!-- 検索 -->
+    <div class="desktop-search">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="ds-location-input" data-i18n-placeholder="search_placeholder" placeholder="ホテル名・駅名・住所で検索...">
+    </div>
+    <button class="desktop-gps-btn" onclick="useGPS('desktop')">
+      <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+      <span data-i18n="gps_btn">現在地を取得</span>
+    </button>
+    <div class="desktop-start-badge" id="ds-start-badge">
+      <span>📍</span>
+      <span class="desktop-start-badge-text" id="ds-start-badge-text">—</span>
+      <span class="desktop-start-badge-clear" onclick="clearStart()">✕</span>
+    </div>
+
+    <!-- モード切替 -->
+    <div class="desktop-mode" style="margin-top:10px">
+      <button class="desktop-mode-btn active" id="ds-btn-run" onclick="setMode('run')">🏃 <span data-i18n="running">ランニング</span></button>
+      <button class="desktop-mode-btn" id="ds-btn-bike" onclick="setMode('bike')">🚴 <span data-i18n="cycling">サイクリング</span></button>
+    </div>
+  </div>
+
+  <!-- スクロールエリア -->
+  <div class="desktop-scroll">
+
+    <!-- スポット数 -->
+    <div class="ds-section">
+      <div class="ds-section-title" data-i18n="spots_count">経由する観光スポット数</div>
+      <div class="ds-spots-grid">
+        <div class="ds-spot-btn" id="ds-spot-0" onclick="setSpotCount(0)">
+          <span class="ds-spot-num">0</span>
+          <span class="ds-spot-lbl" data-i18n="spot_none">なし</span>
+        </div>
+        <div class="ds-spot-btn active" id="ds-spot-1" onclick="setSpotCount(1)">
+          <span class="ds-spot-num">1</span>
+          <span class="ds-spot-lbl" data-i18n="spot_place">か所</span>
+        </div>
+        <div class="ds-spot-btn" id="ds-spot-2" onclick="setSpotCount(2)">
+          <span class="ds-spot-num">2</span>
+          <span class="ds-spot-lbl" data-i18n="spot_places">か所</span>
+        </div>
+        <div class="ds-spot-btn" id="ds-spot-3" onclick="setSpotCount(3)">
+          <span class="ds-spot-num">3</span>
+          <span class="ds-spot-lbl" data-i18n="spot_places">か所</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- スポットタイプ -->
+    <div class="ds-section" id="ds-spot-type-section">
+      <div class="ds-section-title" data-i18n="spot_type">スポットの種類</div>
+      <div class="ds-type-grid">
+        <div class="ds-type-card active" id="ds-type-sightseeing" onclick="toggleSpotType('sightseeing')">
+          <span class="ds-type-icon">🏛️</span>
+          <div>
+            <div class="ds-type-name" data-i18n="type_sightseeing">観光名所</div>
+            <div class="ds-type-desc" data-i18n="type_sightseeing_d">有名スポット・展望台</div>
+          </div>
+        </div>
+        <div class="ds-type-card" id="ds-type-shrine" onclick="toggleSpotType('shrine')">
+          <span class="ds-type-icon">⛩️</span>
+          <div>
+            <div class="ds-type-name" data-i18n="type_shrine">神社・寺</div>
+            <div class="ds-type-desc" data-i18n="type_shrine_d">パワースポット</div>
+          </div>
+        </div>
+        <div class="ds-type-card" id="ds-type-museum" onclick="toggleSpotType('museum')">
+          <span class="ds-type-icon">🎨</span>
+          <div>
+            <div class="ds-type-name" data-i18n="type_museum">美術館・博物館</div>
+            <div class="ds-type-desc" data-i18n="type_museum_d">文化・アート</div>
+          </div>
+        </div>
+        <div class="ds-type-card" id="ds-type-cafe" onclick="toggleSpotType('cafe')">
+          <span class="ds-type-icon">☕</span>
+          <div>
+            <div class="ds-type-name" data-i18n="type_cafe">カフェ</div>
+            <div class="ds-type-desc" data-i18n="type_cafe_d">評価4以上</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 距離 -->
+    <div class="ds-section">
+      <div class="ds-section-title" data-i18n="distance">距離設定</div>
+      <div class="ds-dist-row">
+        <div>
+          <div class="ds-dist-num" id="ds-dist-num">5</div>
+          <div class="ds-dist-unit">KM</div>
+        </div>
+        <div class="ds-dist-right">
+          <input type="range" class="ds-slider" id="ds-dist-slider"
+            min="1" max="42" value="5" oninput="dsUpdateDist(this.value)">
+          <div class="ds-presets">
+            <div class="ds-preset active" onclick="dsSetDist(5)">5K</div>
+            <div class="ds-preset" onclick="dsSetDist(10)">10K</div>
+            <div class="ds-preset" onclick="dsSetDist(15)">15K</div>
+            <div class="ds-preset" onclick="dsSetDist(21)">HM</div>
+            <div class="ds-preset" onclick="dsSetDist(42)">FM</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ペース -->
+    <div class="ds-section">
+      <div class="ds-section-title" id="ds-pace-label" data-i18n="pace">ペース設定</div>
+      <div id="ds-run-pace" class="ds-pace-row">
+        <div>
+          <div class="ds-dist-num" id="ds-pace-display" style="font-size:24px">6:00</div>
+          <div class="ds-dist-unit" data-i18n="pace_unit">分/km</div>
+        </div>
+        <div class="ds-dist-right">
+          <input type="range" class="ds-slider" id="ds-pace-slider"
+            min="180" max="1200" value="360" step="5"
+            oninput="dsUpdatePace(this.value)">
+          <div class="ds-presets">
+            <div class="ds-preset" onclick="dsSetPace(480)">8:00</div>
+            <div class="ds-preset" onclick="dsSetPace(420)">7:00</div>
+            <div class="ds-preset active" onclick="dsSetPace(360)">6:00</div>
+            <div class="ds-preset" onclick="dsSetPace(300)">5:00</div>
+            <div class="ds-preset" onclick="dsSetPace(240)">4:00</div>
+          </div>
+        </div>
+      </div>
+      <div id="ds-bike-pace" class="ds-pace-row" style="display:none">
+        <div>
+          <div class="ds-dist-num" id="ds-speed-display" style="font-size:28px">20</div>
+          <div class="ds-dist-unit">km/h</div>
+        </div>
+        <div class="ds-dist-right">
+          <input type="range" class="ds-slider" id="ds-speed-slider"
+            min="5" max="60" value="20" step="1"
+            oninput="dsUpdateSpeed(this.value)">
+          <div class="ds-presets">
+            <div class="ds-preset" onclick="dsSetSpeed(10)">10</div>
+            <div class="ds-preset" onclick="dsSetSpeed(15)">15</div>
+            <div class="ds-preset active" onclick="dsSetSpeed(20)">20</div>
+            <div class="ds-preset" onclick="dsSetSpeed(30)">30</div>
+            <div class="ds-preset" onclick="dsSetSpeed(40)">40</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ルートオプション -->
+    <div class="ds-section">
+      <div class="ds-section-title" data-i18n="route_options">ルートオプション</div>
+      <div class="ds-opt-grid">
+        <div class="ds-opt-card active" id="ds-opt-loop" onclick="toggleOpt('loop')">
+          <div class="ds-opt-icon">🔄</div>
+          <div class="ds-opt-name" data-i18n="opt_loop">ループ</div>
+          <div class="ds-opt-desc" data-i18n="opt_loop_d">スタートへ戻る</div>
+        </div>
+        <div class="ds-opt-card" id="ds-opt-scenic" onclick="toggleOpt('scenic')">
+          <div class="ds-opt-icon">🌸</div>
+          <div class="ds-opt-name" data-i18n="opt_scenic">景観ルート</div>
+          <div class="ds-opt-desc" data-i18n="opt_scenic_d">公園・川沿いを優先</div>
+        </div>
+        <div class="ds-opt-card" id="ds-opt-flat" onclick="toggleOpt('flat')">
+          <div class="ds-opt-icon">📏</div>
+          <div class="ds-opt-name" data-i18n="opt_flat">フラット</div>
+          <div class="ds-opt-desc" data-i18n="opt_flat_d">高低差を最小限に</div>
+        </div>
+        <div class="ds-opt-card" id="ds-opt-less-signals" onclick="toggleOpt('less-signals')">
+          <div class="ds-opt-icon">🚦</div>
+          <div class="ds-opt-name" data-i18n="opt_signals">信号が少ない</div>
+          <div class="ds-opt-desc" data-i18n="opt_signals_d">交差点を最小化</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 生成ボタン -->
+    <button class="ds-gen-btn" onclick="generateRoute()">
+      <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      <span data-i18n="generate">コースを生成</span>
+    </button>
+
+    <!-- ルート情報（デスクトップ） -->
+    <div class="ds-result" id="ds-result">
+      <div class="ds-section-title" style="margin-top:16px" data-i18n="route_info">ルート情報</div>
+      <div class="ai-generating" id="ds-ai-generating" style="display:none">
+        <span class="ai-pulse">✨</span>
+        <span data-i18n="ai_generating">AIがコース名を生成中...</span>
+      </div>
+      <div class="ds-route-card" id="ds-route-card" style="display:none">
+        <div class="ds-route-name" id="ds-route-name">—</div>
+        <div class="ds-route-desc" id="ds-route-desc">—</div>
+        <div class="ds-stats">
+          <div class="ds-stat"><span class="ds-stat-val" id="ds-r-dist">—</span><div class="ds-stat-unit">KM</div><div class="ds-stat-lbl" data-i18n="st_dist">距離</div></div>
+          <div class="ds-stat"><span class="ds-stat-val" id="ds-r-time">—</span><div class="ds-stat-unit">MIN</div><div class="ds-stat-lbl" data-i18n="st_time">時間</div></div>
+          <div class="ds-stat"><span class="ds-stat-val" id="ds-r-elev">—</span><div class="ds-stat-unit">M</div><div class="ds-stat-lbl" data-i18n="st_elev">標高</div></div>
+        </div>
+        <div class="ds-spot-tags" id="ds-spot-tags"></div>
+        <div class="ds-export-row">
+          <button class="ds-export-btn primary" onclick="exportGPX()">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            GPX
+          </button>
+          <button class="ds-export-btn" onclick="openGoogleMaps()">🟢 Google Maps</button>
+          <button class="ds-export-btn" onclick="clearRoute()">🗑️</button>
+        </div>
+      </div>
+      <div class="ds-share-card" id="ds-share-card" style="display:none">
+        <div class="ds-section-title" data-i18n="share_route">ルートをシェア</div>
+        <div class="ds-share-url" id="ds-share-url">—</div>
+        <div class="ds-share-btns">
+          <button class="ds-share-btn" onclick="copyShareUrl('desktop')">📋 <span data-i18n="copy_url">URLをコピー</span></button>
+          <button class="ds-share-btn secondary" onclick="showQR()">📷 QR</button>
+        </div>
+        <canvas id="ds-qr-canvas" width="140" height="140" style="display:none;margin:8px auto 0;border-radius:6px"></canvas>
+      </div>
+    </div>
+
+  </div><!-- /desktop-scroll -->
+
+  <!-- フッター -->
+  <div class="desktop-footer">
+    <select class="ds-lang-select" onchange="setLang(this.value)">
+      <option value="ja">🇯🇵 JA</option>
+      <option value="en">🇺🇸 EN</option>
+      <option value="zh">🇨🇳 ZH</option>
+      <option value="ko">🇰🇷 KO</option>
+    </select>
+    <button class="ds-history-btn" onclick="toggleHistory()">🕐 <span data-i18n="history">履歴</span></button>
+    <button class="ds-history-btn" onclick="clearRoute()" style="margin-left:auto">🗑️</button>
+  </div>
+
+</div><!-- /desktop-sidebar -->
 
 <!-- ══════════════════════════════════════════════════════
      BOTTOM SHEET
@@ -1260,6 +1934,57 @@ let isPreviewPlaying = false;
 let routeHistory = JSON.parse(localStorage.getItem('rw2_history') || '[]');
 
 // ══════════════════════════════════════════════════════════
+// DESKTOP UI FUNCTIONS
+// ══════════════════════════════════════════════════════════
+const isMobile = () => window.innerWidth <= 700;
+
+function dsUpdateDist(val) {
+  distKm = parseInt(val);
+  document.getElementById('ds-dist-num').textContent = distKm;
+  document.getElementById('dist-num').textContent = distKm;
+  document.getElementById('dist-slider').value = distKm;
+  const slider = document.getElementById('ds-dist-slider');
+  slider.style.setProperty('--pct', ((distKm-1)/(42-1)*100) + '%');
+  document.querySelectorAll('.ds-preset').forEach(el => {
+    const v = el.textContent==='HM'?21:el.textContent==='FM'?42:parseInt(el.textContent);
+    el.classList.toggle('active', v===distKm);
+  });
+}
+
+function dsSetDist(km) {
+  document.getElementById('ds-dist-slider').value = km;
+  dsUpdateDist(km);
+}
+
+function dsUpdatePace(val) {
+  paceSeconds = parseInt(val);
+  const m = Math.floor(paceSeconds/60), s = paceSeconds%60;
+  const str = `${m}:${String(s).padStart(2,'0')}`;
+  document.getElementById('ds-pace-display').textContent = str;
+  document.getElementById('pace-display').textContent = str;
+  const pct = ((paceSeconds-180)/(1200-180)*100);
+  document.getElementById('ds-pace-slider').style.setProperty('--pct', pct + '%');
+}
+
+function dsSetPace(sec) {
+  document.getElementById('ds-pace-slider').value = sec;
+  dsUpdatePace(sec);
+}
+
+function dsUpdateSpeed(val) {
+  speedKmh = parseInt(val);
+  document.getElementById('ds-speed-display').textContent = speedKmh;
+  document.getElementById('speed-display').textContent = speedKmh;
+  const pct = ((speedKmh-5)/(60-5)*100);
+  document.getElementById('ds-speed-slider').style.setProperty('--pct', pct + '%');
+}
+
+function dsSetSpeed(spd) {
+  document.getElementById('ds-speed-slider').value = spd;
+  dsUpdateSpeed(spd);
+}
+
+// ══════════════════════════════════════════════════════════
 // MAP INIT
 // ══════════════════════════════════════════════════════════
 function initMap() {
@@ -1285,7 +2010,7 @@ function initMap() {
   placesService     = new google.maps.places.PlacesService(gmap);
   elevationService  = new google.maps.ElevationService();
 
-  // Autocomplete
+  // Mobile Autocomplete
   const input = document.getElementById('location-input');
   autocomplete = new google.maps.places.Autocomplete(input, {
     types: ['geocode', 'establishment'],
@@ -1294,12 +2019,22 @@ function initMap() {
   autocomplete.addListener('place_changed', () => {
     const place = autocomplete.getPlace();
     if (!place.geometry) return;
-    setStart(
-      place.geometry.location.lat(),
-      place.geometry.location.lng(),
-      place.name || place.formatted_address
-    );
+    setStart(place.geometry.location.lat(), place.geometry.location.lng(), place.name || place.formatted_address);
   });
+
+  // Desktop Autocomplete
+  const dsInput = document.getElementById('ds-location-input');
+  if (dsInput) {
+    const dsAc = new google.maps.places.Autocomplete(dsInput, {
+      types: ['geocode', 'establishment'],
+      componentRestrictions: { country: 'jp' },
+    });
+    dsAc.addListener('place_changed', () => {
+      const place = dsAc.getPlace();
+      if (!place.geometry) return;
+      setStart(place.geometry.location.lat(), place.geometry.location.lng(), place.name || place.formatted_address);
+    });
+  }
 
   // 現在地取得
   if (navigator.geolocation) {
@@ -1363,16 +2098,20 @@ function setStart(lat, lng, name) {
   userLocation = { lat, lng };
   gmap.setCenter({ lat, lng });
 
+  // Mobile
   const badge = document.getElementById('start-badge');
   const badgeText = document.getElementById('start-badge-text');
   const searchText = document.getElementById('bs-search-text');
+  if (badge) { badgeText.textContent = name; badge.classList.add('show'); }
+  if (searchText) searchText.textContent = name;
 
-  badgeText.textContent = name;
-  badge.classList.add('show');
-  searchText.textContent = name;
+  // Desktop
+  const dsBadge = document.getElementById('ds-start-badge');
+  const dsBadgeText = document.getElementById('ds-start-badge-text');
+  if (dsBadge) { dsBadgeText.textContent = name; dsBadge.classList.add('show'); }
 
   notify(`📍 ${name}`, 'success');
-  bsOpen('peek');
+  if (isMobile()) bsOpen('peek');
 }
 
 function clearStart() {
@@ -1382,7 +2121,7 @@ function clearStart() {
   document.getElementById('location-input').value = '';
 }
 
-function useGPS() {
+function useGPS(from) {
   if (!navigator.geolocation) { notify('❌ 位置情報が使えません', 'error'); return; }
   notify(t('gps_btn') + '...', 'info');
   navigator.geolocation.getCurrentPosition(pos => {
@@ -1403,12 +2142,18 @@ function centerOnUser() {
 // ══════════════════════════════════════════════════════════
 function setMode(mode) {
   currentMode = mode;
-  document.getElementById('btn-run').classList.toggle('active', mode === 'run');
-  document.getElementById('btn-bike').classList.toggle('active', mode === 'bike');
-  document.getElementById('run-pace-row').style.display = mode === 'run' ? 'flex' : 'none';
-  document.getElementById('bike-pace-row').style.display = mode === 'bike' ? 'flex' : 'none';
-  document.getElementById('pace-label').setAttribute('data-i18n', mode === 'run' ? 'pace' : 'speed');
-  document.getElementById('pace-label').textContent = t(mode === 'run' ? 'pace' : 'speed');
+  // Mobile
+  document.getElementById('btn-run')?.classList.toggle('active', mode==='run');
+  document.getElementById('btn-bike')?.classList.toggle('active', mode==='bike');
+  document.getElementById('run-pace-row').style.display = mode==='run' ? 'flex' : 'none';
+  document.getElementById('bike-pace-row').style.display = mode==='bike' ? 'flex' : 'none';
+  // Desktop
+  document.getElementById('ds-btn-run')?.classList.toggle('active', mode==='run');
+  document.getElementById('ds-btn-bike')?.classList.toggle('active', mode==='bike');
+  document.getElementById('ds-run-pace').style.display = mode==='run' ? 'flex' : 'none';
+  document.getElementById('ds-bike-pace').style.display = mode==='bike' ? 'flex' : 'none';
+  const lbl = document.getElementById('ds-pace-label');
+  if (lbl) { lbl.setAttribute('data-i18n', mode==='run'?'pace':'speed'); lbl.textContent = t(mode==='run'?'pace':'speed'); }
 }
 
 // ══════════════════════════════════════════════════════════
@@ -1416,20 +2161,28 @@ function setMode(mode) {
 // ══════════════════════════════════════════════════════════
 function setSpotCount(n) {
   spotCount = n;
+  // Mobile
   document.querySelectorAll('.spot-btn').forEach((el,i) => el.classList.toggle('active', i===n));
   document.getElementById('spot-type-section').style.display = n > 0 ? 'block' : 'none';
+  // Desktop
+  document.querySelectorAll('.ds-spot-btn').forEach((el,i) => el.classList.toggle('active', i===n));
+  const dsTypeSection = document.getElementById('ds-spot-type-section');
+  if (dsTypeSection) dsTypeSection.style.display = n > 0 ? 'block' : 'none';
 }
 
 function toggleSpotType(type) {
-  const el = document.getElementById(`type-${type}`);
+  const el  = document.getElementById(`type-${type}`);
+  const dsEl = document.getElementById(`ds-type-${type}`);
   if (selectedSpotTypes.has(type)) {
     if (selectedSpotTypes.size > 1) {
       selectedSpotTypes.delete(type);
-      el.classList.remove('active');
+      el?.classList.remove('active');
+      dsEl?.classList.remove('active');
     }
   } else {
     selectedSpotTypes.add(type);
-    el.classList.add('active');
+    el?.classList.add('active');
+    dsEl?.classList.add('active');
   }
 }
 
@@ -1490,18 +2243,22 @@ function setSpeed(spd) {
 // OPTIONS
 // ══════════════════════════════════════════════════════════
 function toggleOpt(opt) {
-  const el = document.getElementById(`opt-${opt}`);
+  const el   = document.getElementById(`opt-${opt}`);
+  const dsEl = document.getElementById(`ds-opt-${opt}`);
   if (opt === 'loop') {
     selectedOpts.add('loop');
-    el.classList.add('active');
+    el?.classList.add('active');
+    dsEl?.classList.add('active');
     return;
   }
   if (selectedOpts.has(opt)) {
     selectedOpts.delete(opt);
-    el.classList.remove('active');
+    el?.classList.remove('active');
+    dsEl?.classList.remove('active');
   } else {
     selectedOpts.add(opt);
-    el.classList.add('active');
+    el?.classList.add('active');
+    dsEl?.classList.add('active');
   }
 }
 
@@ -1716,6 +2473,8 @@ function renderRoute(result, targetKm, actualKm, spots) {
 
   document.getElementById('r-dist').textContent = actualKm.toFixed(1);
   document.getElementById('r-time').textContent = timeMin;
+  document.getElementById('ds-r-dist')?.setAttribute && (document.getElementById('ds-r-dist').textContent = actualKm.toFixed(1));
+  document.getElementById('ds-r-time')?.setAttribute && (document.getElementById('ds-r-time').textContent = timeMin);
 
   // 標高差計算
   elevationService.getElevationAlongPath({ path: path.slice(0,100), samples: 50 }, (res, st) => {
@@ -1733,11 +2492,20 @@ function renderRoute(result, targetKm, actualKm, spots) {
   const tagsEl = document.getElementById('spot-tags');
   tagsEl.innerHTML = spots.map(s => `<div class="spot-tag">🏛️ ${s.name}</div>`).join('');
 
-  // 結果表示
+  // モバイル表示
   document.getElementById('result-section').style.display = 'block';
   document.getElementById('ai-generating').style.display = 'flex';
   document.getElementById('route-info-card').style.display = 'none';
   document.getElementById('share-card').style.display = 'none';
+  // デスクトップ表示
+  const dsResult = document.getElementById('ds-result');
+  const dsAiGen  = document.getElementById('ds-ai-generating');
+  const dsCard   = document.getElementById('ds-route-card');
+  const dsShare  = document.getElementById('ds-share-card');
+  if (dsResult) dsResult.style.display = 'block';
+  if (dsAiGen)  dsAiGen.style.display = 'flex';
+  if (dsCard)   dsCard.style.display = 'none';
+  if (dsShare)  dsShare.style.display = 'none';
 
   // 履歴保存
   const startName = document.getElementById('start-badge-text').textContent || '不明';
@@ -1805,11 +2573,17 @@ JSON:
     document.getElementById('route-name').textContent = parsed.name || '—';
     document.getElementById('route-desc').textContent =
       `${parsed.desc || '—'}${parsed.best_time ? ` ⏰ ${parsed.best_time}` : ''}`;
-
     document.getElementById('ai-generating').style.display = 'none';
     document.getElementById('route-info-card').style.display = 'block';
 
-    // シェアURL生成
+    // デスクトップ側も更新
+    const dsName = document.getElementById('ds-route-name');
+    const dsDesc = document.getElementById('ds-route-desc');
+    if (dsName) dsName.textContent = parsed.name || '—';
+    if (dsDesc) dsDesc.textContent = `${parsed.desc || '—'}${parsed.best_time ? ` ⏰ ${parsed.best_time}` : ''}`;
+    document.getElementById('ds-ai-generating')?.style && (document.getElementById('ds-ai-generating').style.display = 'none');
+    document.getElementById('ds-route-card')?.style && (document.getElementById('ds-route-card').style.display = 'block');
+
     generateShareUrl(parsed.name);
 
   } catch(e) {
@@ -1843,15 +2617,19 @@ function generateShareUrl(name) {
 
   document.getElementById('share-url').textContent = url;
   document.getElementById('share-card').style.display = 'block';
+  // Desktop
+  const dsShareUrl = document.getElementById('ds-share-url');
+  const dsShareCard = document.getElementById('ds-share-card');
+  if (dsShareUrl) dsShareUrl.textContent = url;
+  if (dsShareCard) dsShareCard.style.display = 'block';
 }
 
-function copyShareUrl() {
-  const url = document.getElementById('share-url').textContent;
+function copyShareUrl(from) {
+  const elId = from === 'desktop' ? 'ds-share-url' : 'share-url';
+  const url = document.getElementById(elId)?.textContent || document.getElementById('share-url').textContent;
   navigator.clipboard.writeText(url).then(() => {
     notify('📋 URLをコピーしました', 'success');
-  }).catch(() => {
-    notify('コピーに失敗しました', 'error');
-  });
+  }).catch(() => notify('コピーに失敗しました', 'error'));
 }
 
 function showQR() {
@@ -2044,6 +2822,9 @@ function toggleHistory() {
 // ══════════════════════════════════════════════════════════
 const i18n = {
   ja: {
+    tagline:      'その街を走って観光する',
+    running:      'ランニング',
+    cycling:      'サイクリング',
     search_placeholder: 'ホテル名・駅名・住所で検索...',
     start_point:  'スタート地点',
     spots_count:  '経由する観光スポット数',
@@ -2089,6 +2870,9 @@ const i18n = {
     err_route:   '❌ ルート生成に失敗しました',
   },
   en: {
+    tagline:      'Run Tourism — Explore the City',
+    running:      'Running',
+    cycling:      'Cycling',
     search_placeholder: 'Hotel, station, or address...',
     start_point:  'Start Point',
     spots_count:  'Sightseeing Stops',
@@ -2134,6 +2918,9 @@ const i18n = {
     err_route:   '❌ Route generation failed',
   },
   zh: {
+    tagline:      '跑步观光这座城市',
+    running:      '跑步',
+    cycling:      '骑行',
     search_placeholder: '酒店名、车站或地址...',
     start_point:  '出发地',
     spots_count:  '途经景点数',
@@ -2179,6 +2966,9 @@ const i18n = {
     err_route:   '❌ 路线生成失败',
   },
   ko: {
+    tagline:      '달리며 도시를 관광하다',
+    running:      '러닝',
+    cycling:      '사이클링',
     search_placeholder: '호텔명, 역명, 주소 입력...',
     start_point:  '출발지',
     spots_count:  '경유할 관광지 수',
