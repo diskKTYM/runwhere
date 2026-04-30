@@ -1271,7 +1271,8 @@ body {
     cursor: pointer; letter-spacing: .3px;
     display: flex; align-items: center; gap: 8px;
     box-shadow: 0 6px 28px rgba(99,102,241,.6);
-    transition: all .18s;
+    transition: bottom .38s cubic-bezier(.32,1,.5,1),
+                opacity .25s ease;
     white-space: nowrap;
     -webkit-tap-highlight-color: transparent;
   }
@@ -3023,11 +3024,30 @@ function t(key) {
     bsState = state;
     const sheet = document.getElementById('bottom-sheet');
     const overlay = document.getElementById('bs-overlay');
+    const genBtn = document.getElementById('bs-map-gen-btn');
     if (!sheet) return;
 
     sheet.classList.remove('peek', 'half', 'full');
     sheet.classList.add(state);
     overlay.classList.toggle('show', state === 'full');
+
+    // ── ボタンをボトムシートの状態に合わせて移動 ──
+    if (genBtn) {
+      if (state === 'peek') {
+        // peek: シート88px → ボタンはその上
+        genBtn.style.bottom = 'max(96px, calc(env(safe-area-inset-bottom) + 96px))';
+        genBtn.style.opacity = '1';
+        genBtn.style.pointerEvents = 'auto';
+      } else if (state === 'half') {
+        // half: シートが58dvh → ボタンを非表示
+        genBtn.style.opacity = '0';
+        genBtn.style.pointerEvents = 'none';
+      } else {
+        // full: 全開 → ボタンを非表示
+        genBtn.style.opacity = '0';
+        genBtn.style.pointerEvents = 'none';
+      }
+    }
   }
 
   window.bsSetState = bsSetState;
