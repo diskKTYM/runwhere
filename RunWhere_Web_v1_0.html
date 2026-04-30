@@ -601,7 +601,7 @@ body {
 .map-ctrl:hover { background:var(--surface2); color:var(--text); transform:translateY(-1px); box-shadow:0 4px 12px rgba(0,0,0,.12); }
 .map-ctrl:active { transform:scale(.94); }
 
-.map-ctrl-preview { background: linear-gradient(135deg,rgba(99,102,241,.1),rgba(139,92,246,.1)); color: #6366f1; border-color: rgba(99,102,241,.25); font-size:14px; }
+.map-ctrl-preview { background: white; color: #6366f1; border-color: rgba(99,102,241,.25); font-size:14px; }
 .map-ctrl-preview:hover { background: linear-gradient(135deg,#6366f1,#8b5cf6) !important; color: white !important; border-color: transparent !important; }
 .map-ctrl-preview.playing { background: linear-gradient(135deg,#6366f1,#8b5cf6); color: white; border-color: transparent; }
 
@@ -936,21 +936,30 @@ body {
 
   #map { width: 100%; height: 100%; }
 
-  /* ── マップコントロール：位置調整 ── */
+  /* ── マップコントロール：標高グラフの下に ── */
   .map-controls {
-    top: max(56px, calc(env(safe-area-inset-top) + 48px));
+    top: max(130px, calc(env(safe-area-inset-top) + 120px));
     right: 12px;
     gap: 8px;
   }
 
   .map-ctrl { width: 42px; height: 42px; font-size: 15px; border-radius: 12px; }
 
-  /* ── 標高グラフ ── */
-  .elev-bar { height: 56px; bottom: 320px; }
+  /* ── 標高グラフ：上部に表示 ── */
+  .elev-bar {
+    top: max(0px, env(safe-area-inset-top));
+    bottom: auto;
+    height: 110px;
+    background: linear-gradient(to bottom, rgba(245,246,250,.97), transparent);
+  }
+
+  .elev-bar canvas {
+    top: 0; bottom: auto;
+  }
 
   /* ── プレビューバー ── */
   .preview-bar {
-    bottom: 300px;
+    bottom: 100px;
     padding: 10px 12px;
   }
 
@@ -1008,16 +1017,19 @@ body {
   .bs-handle-wrap {
     padding: 10px 0 4px;
     display: flex; flex-direction: column;
-    align-items: center; gap: 6px;
+    align-items: stretch;
+    gap: 6px;
     flex-shrink: 0;
     cursor: grab;
     background: linear-gradient(135deg, #6366f1, #8b5cf6, #a78bfa);
     border-radius: 20px 20px 0 0;
   }
 
+  /* ハンドルバーだけ中央揃え */
   .bs-handle {
     width: 36px; height: 4px;
     background: rgba(255,255,255,.5); border-radius: 2px;
+    align-self: center;
   }
 
   /* ── ピーク時：検索バー + モードトグル ── */
@@ -1032,6 +1044,8 @@ body {
     padding: 0 14px 14px;
     flex-shrink: 0;
     display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
   .bs-search-mini {
@@ -1082,6 +1096,21 @@ body {
   }
 
   .bs-header-gen-btn:active { transform: scale(.97); opacity: .9; }
+
+  /* ── ゴミ箱ボタン（生成ボタン横） ── */
+  .bs-header-clear-btn {
+    flex-shrink: 0;
+    width: 46px; height: 46px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,.2);
+    border: 1px solid rgba(255,255,255,.3);
+    border-radius: 12px;
+    font-size: 18px; cursor: pointer;
+    transition: all .18s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .bs-header-clear-btn:active { transform: scale(.94); background: rgba(255,255,255,.35); }
 
   /* ── スクロール可能コンテンツ ── */
   .bs-scroll {
@@ -1595,7 +1624,6 @@ body {
         <div class="map-ctrl" title="縮小" onclick="gmap.setZoom(gmap.getZoom()-1)">－</div>
         <div class="map-ctrl" title="現在地" onclick="centerOnUser()">📍</div>
         <div class="map-ctrl map-ctrl-preview" id="map-preview-btn" title="プレビュー" onclick="togglePreview()">▶</div>
-        <div class="map-ctrl" title="クリア" onclick="clearRoute()">🗑️</div>
       </div>
 
       <div class="elev-bar" id="elev-bar">
@@ -1674,6 +1702,7 @@ body {
         <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         ルートを生成
       </button>
+      <button class="bs-header-clear-btn" onclick="clearRoute()" title="クリア">🗑️</button>
     </div>
   </div>
 
