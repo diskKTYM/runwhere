@@ -2182,29 +2182,46 @@ function buildWaypoints(lat, lng, distKm, scaleFactor = 1.0) {
   const wps = [];
 
   if (isLoop) {
-    // 経由点数（少ないほど大きな円弧 = 往復しにくい）
-    const n = 3; // 常に3点固定（三角形が最も大きな周回になる）
+    // ── 円に近い大きなループ生成 ──────────────────────────
+    // 経由点数：距離に応じて6〜16点（多いほど円に近くなる）
+    const n = distKm <= 5 ? 6 : distKm <= 15 ? 8 : 16;
 
-    // ★ 半径を大幅に拡大：目標距離の1/3を一辺とした正三角形の外接円
-    // 正三角形: 辺 = distKm/3、外接円半径 = 辺 / √3
-    const sideKm    = (distKm / n) * scaleFactor;
-    const radiusKm  = sideKm / Math.sqrt(3) * 1.5; // さらに1.5倍大きく
+    // 半径計算：円周 ≈ 目標距離 → r = dist / (2π)
+    // さらにscaleFactorで調整
+    const radiusKm  = (distKm / (2 * Math.PI)) * scaleFactor * 1.1;
     const radiusDeg = radiusKm / 111;
+    const lngScale  = Math.cos(lat * Math.PI / 180);
 
-    // ランダムな基準方向
+    // ランダムな基準方向（毎回違う向きで出発）
     const base = Math.random() * 360;
 
     for (let i = 0; i < n; i++) {
-      // 均等な120度間隔 + 小さなランダムズレ（±8度）
-      const jitter   = (Math.random() - 0.5) * 16;
+      // 均等角度：ジッターを最小化（±5度）して円形を維持
+      const jitter   = (Math.random() - 0.5) * 10;
       const angleDeg = base + (360 / n) * i + jitter;
       const angleRad = angleDeg * Math.PI / 180;
 
-      // stopover: true → 必ずその地点を通過させる（往復防止の核心）
+      // 地形・オプションによるオフセット
+      let rLat = radiusDeg;
+      let rLng = radiusDeg / lngScale;
+
+      // アップダウンオプション：楕円形にして変化をつける
+      if (selectedOpts.has('hilly')) {
+        const stretch = 1.0 + 0.3 * Math.sin(angleRad * 2);
+        rLat *= stretch;
+        rLng *= stretch;
+      }
+
+      // フラットオプション：より均等な円形に
+      if (selectedOpts.has('flat')) {
+        rLat = radiusDeg * 0.98;
+        rLng = radiusDeg / lngScale * 0.98;
+      }
+
       wps.push({
         location: {
-          lat: lat + radiusDeg * Math.cos(angleRad),
-          lng: lng + radiusDeg * Math.sin(angleRad) / Math.cos(lat * Math.PI / 180)
+          lat: lat + rLat * Math.cos(angleRad),
+          lng: lng + rLng * Math.sin(angleRad)
         },
         stopover: true
       });
