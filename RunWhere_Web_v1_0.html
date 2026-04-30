@@ -1730,6 +1730,60 @@ body {
       </div>
     </div>
 
+    <!-- ペース / 速度設定 -->
+    <div class="bs-section">
+      <div class="bs-section-title" id="bs-pace-label">ペース設定</div>
+      <!-- ランニング -->
+      <div id="bs-run-row" class="bs-pace-row">
+        <div class="bs-dist-row">
+          <div>
+            <div class="bs-dist-num" id="bs-pace-display-val" style="font-size:28px;min-width:52px">6:00</div>
+            <div class="bs-dist-unit">分/km</div>
+          </div>
+          <div class="bs-dist-right">
+            <input type="range" class="bs-dist-slider" id="bs-pace-slider"
+              min="180" max="1200" value="360" step="5"
+              oninput="bsPaceSliderChange(this.value)">
+            <div class="bs-dist-presets">
+              <div class="bs-dist-preset" onclick="bsSetPace(480)">8:00</div>
+              <div class="bs-dist-preset" onclick="bsSetPace(420)">7:00</div>
+              <div class="bs-dist-preset active" onclick="bsSetPace(360)">6:00</div>
+              <div class="bs-dist-preset" onclick="bsSetPace(300)">5:00</div>
+              <div class="bs-dist-preset" onclick="bsSetPace(240)">4:00</div>
+            </div>
+          </div>
+        </div>
+        <input type="hidden" id="bs-pace-min" value="6">
+        <input type="hidden" id="bs-pace-sec" value="00">
+      </div>
+      <!-- サイクリング -->
+      <div id="bs-bike-row" class="bs-pace-row" style="display:none">
+        <div class="bs-dist-row">
+          <div>
+            <div class="bs-dist-num" id="bs-speed-display-val" style="min-width:52px">20</div>
+            <div class="bs-dist-unit">km/h</div>
+          </div>
+          <div class="bs-dist-right">
+            <input type="range" class="bs-dist-slider" id="bs-speed-slider"
+              min="5" max="60" value="20" step="1"
+              oninput="bsSpeedSliderChange(this.value)">
+            <div class="bs-dist-presets">
+              <div class="bs-dist-preset" onclick="bsSetSpeed(10)">10</div>
+              <div class="bs-dist-preset" onclick="bsSetSpeed(15)">15</div>
+              <div class="bs-dist-preset active" onclick="bsSetSpeed(20)">20</div>
+              <div class="bs-dist-preset" onclick="bsSetSpeed(30)">30</div>
+              <div class="bs-dist-preset" onclick="bsSetSpeed(40)">40</div>
+            </div>
+          </div>
+        </div>
+        <input type="hidden" id="bs-bike-speed" value="20">
+      </div>
+      <div class="bs-pace-result">
+        <span class="bs-pace-result-label" data-i18n="est_time">目安タイム</span>
+        <span class="bs-pace-result-val" id="bs-pace-result-val">—</span>
+      </div>
+    </div>
+
     <!-- 距離設定 -->
     <div class="bs-section">
       <div class="bs-section-title" data-i18n="distance">距離設定</div>
@@ -1793,60 +1847,6 @@ body {
             <div class="bs-opt-desc" data-i18n="opt_cafe_d">評価4以上のカフェを経由</div>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- ペース / 速度設定 -->
-    <div class="bs-section">
-      <div class="bs-section-title" id="bs-pace-label">ペース設定</div>
-      <!-- ランニング -->
-      <div id="bs-run-row" class="bs-pace-row">
-        <div class="bs-dist-row">
-          <div>
-            <div class="bs-dist-num" id="bs-pace-display-val" style="font-size:28px;min-width:52px">6:00</div>
-            <div class="bs-dist-unit">分/km</div>
-          </div>
-          <div class="bs-dist-right">
-            <input type="range" class="bs-dist-slider" id="bs-pace-slider"
-              min="180" max="1200" value="360" step="5"
-              oninput="bsPaceSliderChange(this.value)">
-            <div class="bs-dist-presets">
-              <div class="bs-dist-preset" onclick="bsSetPace(480)">8:00</div>
-              <div class="bs-dist-preset" onclick="bsSetPace(420)">7:00</div>
-              <div class="bs-dist-preset active" onclick="bsSetPace(360)">6:00</div>
-              <div class="bs-dist-preset" onclick="bsSetPace(300)">5:00</div>
-              <div class="bs-dist-preset" onclick="bsSetPace(240)">4:00</div>
-            </div>
-          </div>
-        </div>
-        <input type="hidden" id="bs-pace-min" value="6">
-        <input type="hidden" id="bs-pace-sec" value="00">
-      </div>
-      <!-- サイクリング -->
-      <div id="bs-bike-row" class="bs-pace-row" style="display:none">
-        <div class="bs-dist-row">
-          <div>
-            <div class="bs-dist-num" id="bs-speed-display-val" style="min-width:52px">20</div>
-            <div class="bs-dist-unit">km/h</div>
-          </div>
-          <div class="bs-dist-right">
-            <input type="range" class="bs-dist-slider" id="bs-speed-slider"
-              min="5" max="60" value="20" step="1"
-              oninput="bsSpeedSliderChange(this.value)">
-            <div class="bs-dist-presets">
-              <div class="bs-dist-preset" onclick="bsSetSpeed(10)">10</div>
-              <div class="bs-dist-preset" onclick="bsSetSpeed(15)">15</div>
-              <div class="bs-dist-preset active" onclick="bsSetSpeed(20)">20</div>
-              <div class="bs-dist-preset" onclick="bsSetSpeed(30)">30</div>
-              <div class="bs-dist-preset" onclick="bsSetSpeed(40)">40</div>
-            </div>
-          </div>
-        </div>
-        <input type="hidden" id="bs-bike-speed" value="20">
-      </div>
-      <div class="bs-pace-result">
-        <span class="bs-pace-result-label" data-i18n="est_time">目安タイム</span>
-        <span class="bs-pace-result-val" id="bs-pace-result-val">—</span>
       </div>
     </div>
 

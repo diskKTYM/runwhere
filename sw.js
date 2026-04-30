@@ -1,8 +1,8 @@
 // ─── RunWhere Service Worker ─────────────────────────────────────────────────
 // キャッシュ名（バージョンアップ時は変更してください）
-const CACHE_NAME = 'runwhere-v1';
-const STATIC_CACHE = 'runwhere-static-v1';
-const DYNAMIC_CACHE = 'runwhere-dynamic-v1';
+const CACHE_NAME = 'runwhere-v2';
+const STATIC_CACHE = 'runwhere-static-v2';
+const DYNAMIC_CACHE = 'runwhere-dynamic-v2';
 
 // オフラインでキャッシュするリソース（必須アセット）
 const STATIC_ASSETS = [
