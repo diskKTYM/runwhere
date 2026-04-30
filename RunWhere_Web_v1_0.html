@@ -1250,20 +1250,27 @@ body {
   .bs-start-badge.show { display: flex; }
   .bs-start-badge-text { flex: 1; line-height: 1.4; font-size: 11px; color: var(--text2); }
   .bs-start-badge-clear { cursor: pointer; color: var(--text3); font-size: 14px; }
+}
 
-  /* ── マップ上 生成ボタン（ボトムシート上・ピル型） ── */
+/* ── マップ上 生成ボタン（モバイル専用・ピル型） ─────── */
+/* デスクトップでは非表示 */
+.bs-map-gen-btn { display: none; }
+
+@media (max-width: 700px) {
   .bs-map-gen-btn {
     position: fixed;
-    bottom: max(108px, calc(env(safe-area-inset-bottom) + 100px));
-    left: 50%; transform: translateX(-50%);
+    /* ボトムシートpeek(88px)のすぐ上に配置 */
+    bottom: max(96px, calc(env(safe-area-inset-bottom) + 96px));
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 600;
-    padding: 14px 28px;
-    background: linear-gradient(135deg,#6366f1,#8b5cf6);
+    padding: 14px 32px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
     color: white; border: none; border-radius: 50px;
     font-family: inherit; font-size: 15px; font-weight: 700;
     cursor: pointer; letter-spacing: .3px;
     display: flex; align-items: center; gap: 8px;
-    box-shadow: 0 6px 24px rgba(99,102,241,.55);
+    box-shadow: 0 6px 28px rgba(99,102,241,.6);
     transition: all .18s;
     white-space: nowrap;
     -webkit-tap-highlight-color: transparent;
@@ -1271,9 +1278,6 @@ body {
 
   .bs-map-gen-btn:active { transform: translateX(-50%) scale(.95); }
 }
-
-/* デスクトップではマップ上ボタン非表示 */
-.bs-map-gen-btn { display: none; }
 
 /* ── MOBILE スクロールヒント ─────────────────────────── */
 .mobile-scroll-hint { display: none; }
