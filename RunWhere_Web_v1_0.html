@@ -1564,7 +1564,7 @@ body {
       <div class="card dist-card">
         <div class="card-label" data-i18n="distance">距離設定</div>
         <div class="dist-num-wrap" style="margin-bottom:10px">
-          <input type="number" id="dist-input" class="dist-input" value="10" min="1" max="200" oninput="updatePaceResult()">
+          <input type="number" id="dist-input" class="dist-input" value="5" min="1" max="200" oninput="updatePaceResult()">
           <span class="dist-unit">KM</span>
         </div>
         <div class="presets">
@@ -1748,12 +1748,12 @@ body {
       <div class="bs-section-title" data-i18n="distance">距離設定</div>
       <div class="bs-dist-row">
         <div>
-          <div class="bs-dist-num" id="bs-dist-num">10</div>
+          <div class="bs-dist-num" id="bs-dist-num">5</div>
           <div class="bs-dist-unit">KM</div>
         </div>
         <div class="bs-dist-right">
           <input type="range" class="bs-dist-slider" id="bs-dist-slider"
-            min="1" max="42" value="10" oninput="bsUpdateDist(this.value)">
+            min="1" max="42" value="5" oninput="bsUpdateDist(this.value)">
           <div class="bs-dist-presets">
             <div class="bs-dist-preset" onclick="bsSetDist(5)">5K</div>
             <div class="bs-dist-preset active" onclick="bsSetDist(10)">10K</div>
